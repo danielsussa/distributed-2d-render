@@ -48,32 +48,32 @@ function Photon(vector, angle, power){
 
 function LightEmitter(vector, color, angle){
     this.raycast = function(){
-        const minAngle = angle - 5;
-        const maxAngle = angle + 5;
-
-        var newVector = Object.assign(new Vector2D, vector);
+        const minAngle = angle - 40;
+        const maxAngle = angle + 40;
 
         for (var i = minAngle ; i < maxAngle ; i += 1){
-            var newVector = Object.assign(new Vector2D, vector);
-            var collider = null;
-
-            var i = 0;
-            // while (true) {
-            //     i++;
-            //     if (i > 100){
-            //         break;
-            //     }
-            //     var c = objects.getCollider(newVector);
-            //     if (c != null){
-            //         collider = c;
-            //         break; 
-            //     }
-            //     if (newVector.x < 0 || newVector.y < 0 || newVector.x > canvasWidth || newVector.y > canvasHeight){
-            //         break;
-            //     }
-            //     newVector = move(newVector, 1, angle);
-            // }
+            this.makeLine(i);
         }
+    }
+    this.makeLine = function(angle){
+        var newVector = Object.assign(new Vector2D, vector);
+        var collider = null;
+
+        while (true) {
+            var c = objects.getCollider(newVector);
+            if (c != null){
+                collider = c;
+                break; 
+            }
+            if (newVector.x < 0 || newVector.y < 0 || newVector.x > canvasWidth || newVector.y > canvasHeight){
+                break;
+            }
+            newVector = move(newVector, 1, angle);
+        }
+        if (collider != null){
+            console.log("achou")
+        }
+        new drawLine(vector, newVector, color);
     }
     this.draw = function(){
         drawPixel(vector, new Color(255,0,0));
@@ -96,11 +96,11 @@ function SphereLight(vector, radius, color){
     this.createEmitters = function(){
         // X = r * cosine(angle)  
         // Y = r * sine(angle)
-        for (var i = 0 ; i < 360 ; i+=1){
+        for (var i = 0 ; i < 1 ; i+=1){
             const x = Math.floor(vector.x + (radius * Math.cos(i)));
             const y = Math.floor(vector.y + (radius * Math.sin(i)));
             const e = new LightEmitter(new Vector2D(x, y), this.color, i);
-            //e.raycast();
+            e.raycast();
         }
         
     }
@@ -132,14 +132,13 @@ lightSphere.draw();
 lightSphere.createEmitters();
 
 objects.add(lightSphere)
-var emiter1 = new LightEmitter(new Vector2D(500, 500), new Color(255, 255, 255) , 0);
-emiter1.raycast();
+
 
 
 
 function move(vector, distance, angle){
-    const newX = Math.round(vector.x + distance * Math.cos(angle * Math.PI / 180))
-    const newY = Math.round(vector.y + distance * Math.cos(angle * Math.PI / 180))
+    const newX = vector.x + distance * Math.cos(angle * Math.PI / 180)
+    const newY = vector.y + distance * Math.sin(angle * Math.PI / 180)
     return new Vector2D(newX, newY);
 }
 
@@ -147,7 +146,7 @@ function move(vector, distance, angle){
 function drawLine(v1, v2, color){
     const c1 = color;
     const c2 = Object.assign({}, color);
-    c2.a = 0.1;
+    c2.a = 0.0;
     ctx.lineWidth = 1;
     var grad= ctx.createLinearGradient(v1.x, v1.y, v2.x, v2.y);
     grad.addColorStop(0, c1.convert());
