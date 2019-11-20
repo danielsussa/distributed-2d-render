@@ -51,6 +51,8 @@ function LightEmitter(vector, color, angle){
         const minAngle = angle - 40;
         const maxAngle = angle + 40;
 
+
+
         for (var i = minAngle ; i < maxAngle ; i += 1){
             this.makeLine(i);
         }
@@ -94,8 +96,6 @@ function SphereLight(vector, radius, color){
     this.color = color;
 
     this.createEmitters = function(){
-        // X = r * cosine(angle)  
-        // Y = r * sine(angle)
         for (var i = 0 ; i < 1 ; i+=1){
             const x = Math.floor(vector.x + (radius * Math.cos(i)));
             const y = Math.floor(vector.y + (radius * Math.sin(i)));
@@ -116,13 +116,13 @@ function SphereLight(vector, radius, color){
     }
 }
 
-function makeDot(){    
-    for (var i = 0; i< 1000; i++){
+function makeDot(){
+    for (var i = 0; i< 50000; i++){
         const vector = new Vector2D(Math.floor(Math.random() * 5000) , Math.floor(Math.random() * 5000));
         const color = new Color(200,200,200,0.3)
-        drawPixel(vector, color)
+        requestAnimationFrame(drawPixel.bind(drawPixel, vector, color))
+        // drawPixel(vector, color)
     }
-    requestAnimationFrame(makeDot);
 }
 // makeDot()
 
