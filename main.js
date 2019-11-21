@@ -3,19 +3,23 @@ offscreen.width = 1920;
 offscreen.height = 1024;
 
 var renderWorker = new Worker('render-worker.js');
-var worker = new Worker('light-worker.js');
+var lightWorker = new Worker('light-worker.js');
 
 renderWorker.postMessage({canvas: offscreen}, [offscreen]);
 
-worker.addEventListener('message', function(e) {
+
+var pixelsToRender = [];
+
+lightWorker.addEventListener('message', function(e) {
     // worker.postMessage("start");
-    renderWorker.postMessage({pixel: e.data});
+    // pixelsToRender.push(e.data);
+    renderWorker.postMessage(e.data);
 
 }, false);
 
 renderWorker.addEventListener('message', function(e) {
-    worker.postMessage("start");
+    lightWorker.postMessage("start");
 }, false);
 
-worker.postMessage("start");
+lightWorker.postMessage("start");
 
