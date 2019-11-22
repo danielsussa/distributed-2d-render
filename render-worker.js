@@ -25,13 +25,10 @@ function drawLine(raycast){
     const y1 = raycast.line.v1.y;
     const x2 = raycast.line.v2.x;
     const y2 = raycast.line.v2.y;
-    var grd = ctx.createLinearGradient(x1, y1, x2, y2);
     ctx.moveTo(x1, y1);
     ctx.lineTo(x2, y2);
-    grd.addColorStop(0, "white");
-    grd.addColorStop(1, "black");
     ctx.lineWidth = 1;
-    ctx.strokeStyle = grd;
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.2)";
     ctx.stroke();
     self.postMessage({data: 'ok'});
 }
@@ -62,6 +59,8 @@ onmessage = function(evt) {
     if (evt.data.canvas !== undefined){
         var canvas = evt.data.canvas;
         ctx = canvas.getContext("2d");
+        ctx.translate(0, canvas.height);
+        ctx.scale(1, -1);
         return;
     }
     if (evt.data.kind === 'photon'){
