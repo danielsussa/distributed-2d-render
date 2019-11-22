@@ -1,35 +1,70 @@
 var canvasWidth = 1920;
 var canvasHeight = 1080;
 
+function distance(v1, v2){
+    return Math.sqrt(Math.pow(v1.x-v2.x, 2) + Math.pow(v1.y-v2.y, 2));
+}
+
 function Objects(){
     this.objects = [];
     this.addObjects = function(obj){
+        obj.render();
         this.objects.push(obj);
     }
-    this.getCollider = function(vector){
-        this.objects.forEach(obj => {
-            if (obj.hasCollision){
-                return obj;
+    this.getVectorOfCollider = function(line){
+        var closeDistance = 10000;
+        var vector = null;
+        for (var obj of this.objects) {
+            const v = obj.pointOfIntersection(line);
+            if (v !== null){
+                const d = distance(v, line.v1);
+                if (d < closeDistance){
+                    vector = v;
+                    closeDistance = d;
+                }
             }
-        });
-        return null;
+        }
+        return vector;
     }
 }
 
 var photons = [];
 
+var raytraces = [];
+
+function slope(v1, v2){
+    return (v2.y - v1.y) / (v2.x - v1.x);
+}
+
+
+function Raytrace(line, color, distance){
+    this.line = line;
+    this.color = color;
+    this.distance = distance;
+}
 function Photon(v, c, p, d){
     this.vector = v;
     this.color = c;
     this.power = p;
     this.direction = d;
-    this.update = function(){
-        this.vector = move(this.vector, 1, this.direction);
-        const collider = objects.getCollider(this.vector);
-        if (collider !== null){
-            console.log(collider)
+    this.raytrace = function(){
+        var newVector = Object.assign(new Vector2D, this.vector);
+        while(true){
+            newVector = move(newVector, 20, this.direction);
+            if (newVector.x < 0 || newVector.y < 0 || newVector.x > canvasWidth || newVector.y > canvasHeight){
+                break;
+            }
         }
-        self.postMessage({kind: 'photon', pixel: {vector: this.vector, color: this.color}});
+
+        var line = new Line(this.vector, newVector);
+        const vectorOfCollider = objects.getVectorOfCollider(line);
+        if (vectorOfCollider !== null){
+            line = new Line(this.vector, vectorOfCollider);
+        }
+    
+        const raytrace = new Raytrace(line, this.color, this.distance);
+        raytraces.push(raytrace);
+        self.postMessage({kind: 'raytrace', raytrace: {line: raytrace.line}});
     }
     function move(vector, distance, angle){
         const newX = vector.x + distance * Math.cos(angle * Math.PI / 180)
@@ -49,58 +84,52 @@ function Color(r, g, b){
     this.b = b;
 }
 
-// function LightEmitter(vector, color, angle){
-//     this.vector = vector;
-//     this.color = color;
-//     this.angle = angle;
-//     this.raycast = function(){
-//         const minAngle = angle - 1;
-//         const maxAngle = angle + 1;
+function Line(v1, v2) {
+    this.v1 = v1;
+    this.v2 = v2;
+}
 
-//         for (var i = minAngle ; i < maxAngle ; i += 1){
-//             this.emmitPhotons(i);
-//         }
-//     }
-//     this.emmitPhotons = function(angle){
-//         var newVector = Object.assign(new Vector2D, vector);
-//         var collider = null;
+function getLinesIntercection(l1, l2){
+    console.log(l1, l2)
+    const x1 = l1.v1.x;
+    const y1 = l1.v1.y;
+    const x2 = l1.v2.x;
+    const y2 = l1.v2.y;
 
-//         while (true) {
-//             var c = objects.getCollider(newVector);
-//             if (c != null){
-//                 collider = c;
-//                 break; 
-//             }
-//             if (newVector.x < 0 || newVector.y < 0 || newVector.x > canvasWidth || newVector.y > canvasHeight){
-//                 break;
-//             }
-//             newVector = move(newVector, 1, angle);
-//             self.postMessage(JSON.stringify(new Photon(newVector, color)));
-//         }
-//         if (collider != null){
-//             console.log("achou")
-//         }
-//     }
-// }
+    const x3 = l2.v1.x;
+    const y3 = l2.v1.y;
+    const x4 = l2.v2.x;
+    const y4 = l2.v2.y;
+
+    const divisor = ((x1 - x2) * (y3 - y4)) - (y1 - y2) * (x3 - x4);
+
+    const t = (((x1 - x3) * (y3 - y4)) - ((y1 - y3) * (x3 - x4))) / divisor;
+
+    const px = x1 + t * (x2 - x1);
+    const py = y1 + t * (y2 - y1);
+
+
+    if (t < 0 || t > 1){
+        return null;
+    }
+
+    return new Vector2D(px, py);
+
+}
 
 function Shade(color, roughness, refraction){
 
 }
 
-function PhotonKiller(vector1, vector2){
-    this.vector1 = vector1;
-    this.vector2 = vector2;
-    this.hasCollision = function(vector){
-        return onSegment(this.vector1, this.vector2, vector);
-    }
-}
 
-function Plane(vector1, vector2, shade){
-    this.vector1 = vector1;
-    this.vector2 = vector2;
+function PlaneCollider(line, shade){
+    this.line = line;
     this.shade = shade;
-    this.hasCollision = function(vector){
-        return false;
+    this.pointOfIntersection = function(line){
+        return getLinesIntercection(this.line, line);
+    }
+    this.render = function(){
+        self.postMessage({kind: 'planeCollider', planeCollider: {v1: this.line.v1, v2: this.line.v2}});
     }
 }
 
@@ -110,46 +139,49 @@ function SphereLight(vector, radius, color){
     this.color = color;
 
     this.emmitPhoton = function(){
-        const rndAngle = Math.random() * 360;
+        const rndAngle = 310;
         const radians = rndAngle * Math.PI / 180;
         const x = vector.x + (radius * Math.cos(radians));
         const y = vector.y + (radius * Math.sin(radians));
         const rndDirection = rndAngle + ((Math.random() * 180) - 90);
-        const photon = new Photon(new Vector2D(x, y), color, 1, rndDirection);
+        const photon = new Photon(new Vector2D(x, y), color, 1, rndAngle);
         photons.push(photon);
     }
 
     this.render = function(){
         self.postMessage({kind: 'sphere', sphere: {vector: this.vector, radius: this.radius}});
     }
-    this.hasCollision = function(vector){
-        return false;
+    this.pointOfIntersection = function(line){
+        return null;
     }
 }
 
 var objects = new Objects();
 
 
-const lightSphere = new SphereLight(new Vector2D(800,600), 30, new Color(200,200,200))
-lightSphere.render();
+const lightSphere = new SphereLight(new Vector2D(400,400), 30, new Color(200,200,200))
+lightSphere.emmitPhoton();
 // self.postMessage(JSON.stringify(lightSphere));
 
 objects.addObjects(lightSphere);
-objects.addObjects(new PhotonKiller(new Vector2D(0,0), new Vector2D(canvasWidth,0)));
-objects.addObjects(new PhotonKiller(new Vector2D(canvasWidth,0), new Vector2D(canvasWidth,canvasHeight)));
-objects.addObjects(new PhotonKiller(new Vector2D(0,0), new Vector2D(0,canvasHeight)));
-objects.addObjects(new PhotonKiller(new Vector2D(0,canvasHeight), new Vector2D(canvasWidth,canvasHeight)));
 
-function onSegment(p, q, r) { 
-    if (q.x <= Math.max(p.x, r.x) && q.x >= Math.min(p.x, r.x) && q.y <= Math.max(p.y, r.y) && q.y >= Math.min(p.y, r.y)) return true; 
-    return false; 
-} 
+const pc1 = new PlaneCollider(new Line(new Vector2D(200,100), new Vector2D(500,150)), new Shade(new Color(200,200,200), 0.0, 0.0));
+const pc2 = new PlaneCollider(new Line(new Vector2D(200,200), new Vector2D(400,220)), new Shade(new Color(200,200,200), 0.0, 0.0));
+objects.addObjects(pc1);
+objects.addObjects(pc2);
+
+
 
 
 self.addEventListener('message', function(e) {
-    if (photons.length < 5){
-        lightSphere.emmitPhoton();
+    // if (photons.length < 1){
+    //     lightSphere.emmitPhoton();
+    // }
+    const p = photons.pop();
+    if (p !== undefined){
+        p.raytrace();
     }
-    photons[Math.floor(Math.random() * photons.length)].update();
+    
+    //photons[Math.floor(Math.random() * photons.length)].raytrace();
 
 }, false);
