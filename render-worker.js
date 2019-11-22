@@ -21,14 +21,27 @@ function drawPixel(pixel){
 
 function drawLine(raycast){
     ctx.beginPath();
-    const x1 = raycast.line.v1.x;
-    const y1 = raycast.line.v1.y;
-    const x2 = raycast.line.v2.x;
-    const y2 = raycast.line.v2.y;
+    const x1 = raycast.v1.x;
+    const y1 = raycast.v1.y;
+    const x2 = raycast.v2.x;
+    const y2 = raycast.v2.y;
     ctx.moveTo(x1, y1);
     ctx.lineTo(x2, y2);
     ctx.lineWidth = 1;
-    ctx.strokeStyle = "rgba(255, 255, 255, 0.2)";
+
+    const max = 0.01;
+    const min = 0.002;
+
+    // newvalue= (max-min)*(value-1)+max
+
+    const nStart = (max-min)*(raycast.startPower-1)+max;
+    const nEnd = (max-min)*(raycast.endPower-1)+max;
+    let gradient = ctx.createLinearGradient(x1, y1, x2, y2);
+    gradient.addColorStop(0, `rgba(255, 255, 255, ${nStart})`);
+    gradient.addColorStop(1, `rgba(255, 255, 255, ${nEnd})`);
+    ctx.strokeStyle = gradient;
+
+
     ctx.stroke();
     self.postMessage({data: 'ok'});
 }

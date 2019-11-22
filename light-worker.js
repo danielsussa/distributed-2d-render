@@ -62,12 +62,15 @@ function reflectLine(line, currentDir){
     return (inversdeDir - normal) * 2 + inversdeDir;
 }
 
-function Raytrace(line, color, distance){
-    this.line = line;
+function Raytrace(line, color, startPower, endPower){
+    this.v1 = line.v1;
+    this.v2 = line.v2;
     this.color = color;
-    this.distance = distance;
+    this.startPower = startPower;
+    this.endPower = endPower;
 }
 function Photon(v, c, p, d){
+    this.id = JSON.stringify({v: v, d: d});
     this.vector = v;
     this.color = c;
     this.power = p;
@@ -85,16 +88,27 @@ function Photon(v, c, p, d){
         const colliderInfo = objects.getCollider(line);
         if (colliderInfo !== null){
             line = new Line(this.vector, colliderInfo.vector);
-            if (this.power > 0.4){
-                const newDirection = colliderInfo.object.reflectAngle(this.direction);
-                const photon = new Photon(colliderInfo.vector, this.color, this.power / 2, newDirection);
-                photons.push(photon);
-            }
         }
-    
-        const raytrace = new Raytrace(line, this.color, this.distance);
-        raytraces.push(raytrace);
-        self.postMessage({kind: 'raytrace', raytrace: {line: raytrace.line}});
+        const startPower = this.power;
+        this.power = this.calculatePower(this.vector, newVector, this.power);
+
+        const raytrace = new Raytrace(line, this.color, startPower ,this.power);
+        self.postMessage({kind: 'raytrace', raytrace: raytrace});
+
+        if (colliderInfo !== null){
+            this.direction = colliderInfo.object.reflectAngle(this.direction);
+            this.vector = colliderInfo.vector;
+            this.raytrace();
+        }
+
+    }
+    this.calculatePower = function(v1, v2, currentPower){
+        const dist = distance(v1, v2);
+        const steps = dist / 80 < 1 ? 1 :  dist / 80;
+        for (var i = 0 ; i < steps ; i++){
+            currentPower = currentPower / 1.2;
+        } 
+        return currentPower;
     }
     function move(vector, distance, angle){
         const newX = vector.x + distance * Math.cos(angle * Math.PI / 180)
@@ -168,18 +182,32 @@ function PlaneCollider(line, shade){
     }
 }
 
+var photonId = [];
+
 function SphereLight(vector, radius, color){
     this.vector = vector;
     this.radius = radius;
     this.color = color;
 
-    this.emmitPhoton = function(){
-        const rndAngle = 270;
+    this.emmitPhoton = function(i){
+        if (i == undefined){
+            i = 0;
+        }
+        const rndAngle = 250;
         const radians = rndAngle * Math.PI / 180;
         const x = vector.x + (radius * Math.cos(radians));
         const y = vector.y + (radius * Math.sin(radians));
-        const rndDirection = rndAngle + ((Math.random() * 180) - 90);
-        const photon = new Photon(new Vector2D(x, y), color, 1, rndAngle);
+        const rndDirection = rndAngle + ((Math.random() * 60) - 30);
+        const photon = new Photon(new Vector2D(x, y), color, 1, rndDirection);
+
+        if (photonId.indexOf(photon.id) !== -1){
+            if (i > 10){
+                return;
+            }
+            this.emmitPhoton(++i);
+            return;
+        }
+        photonId.push(photon.id);
         photons.push(photon);
     }
 
@@ -212,9 +240,9 @@ objects.addObjects(pc2);
 
 
 self.addEventListener('message', function(e) {
-    // if (photons.length < 1){
-    //     lightSphere.emmitPhoton();
-    // }
+    if (photons.length < 1){
+        lightSphere.emmitPhoton();
+    }
     const p = photons.pop();
     if (p !== undefined){
         p.raytrace();
