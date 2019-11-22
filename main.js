@@ -10,9 +10,14 @@ renderWorker.postMessage({canvas: offscreen}, [offscreen]);
 
 var pixelsToRender = [];
 
+var rayCounter = 0;
+
 lightWorker.addEventListener('message', function(e) {
-    // worker.postMessage("start");
-    // pixelsToRender.push(e.data);
+    
+    if (e.data.kind == 'raytrace'){
+        $("#ray_counter").html(`<b>${rayCounter}</b>`)
+        rayCounter = e.data.total;
+    }
     renderWorker.postMessage(e.data);
 
 }, false);

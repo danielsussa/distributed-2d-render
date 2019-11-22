@@ -91,12 +91,12 @@ function Photon(v, c, p, d){
         }
         const startPower = this.power;
         this.power = this.calculatePower(this.vector, newVector, this.power);
-
         const raytrace = new Raytrace(line, this.color, startPower ,this.power);
-        self.postMessage({kind: 'raytrace', raytrace: raytrace});
+        self.postMessage({kind: 'raytrace', raytrace: raytrace, total: photonId.length});
 
         if (colliderInfo !== null){
             this.direction = colliderInfo.object.reflectAngle(this.direction);
+            this.power = colliderInfo.object.shade.absorption(this.power);
             this.vector = colliderInfo.vector;
             this.raytrace();
         }
@@ -104,9 +104,9 @@ function Photon(v, c, p, d){
     }
     this.calculatePower = function(v1, v2, currentPower){
         const dist = distance(v1, v2);
-        const steps = dist / 80 < 1 ? 1 :  dist / 80;
+        const steps = dist / 50 < 1 ? 1 :  dist / 50;
         for (var i = 0 ; i < steps ; i++){
-            currentPower = currentPower / 1.2;
+            currentPower = currentPower / 1.003;
         } 
         return currentPower;
     }
@@ -164,7 +164,15 @@ function getLinesIntercection(l1, l2){
 
 
 function Shade(color, roughness, refraction){
-
+    this.color = color;
+    this.roughness = roughness;
+    this.refraction = refraction;
+    this.roughnessDeviation = function(){
+        return (Math.random() * 300 - 150) * this.roughness;
+    }
+    this.absorption = function(power){
+        return power - this.roughness;
+    }
 }
 
 
@@ -175,7 +183,8 @@ function PlaneCollider(line, shade){
         return getLinesIntercection(this.line, line);
     }
     this.reflectAngle = function(direction){
-        return reflectLine(this.line, direction);
+        const newDirection = reflectLine(this.line, direction);
+        return newDirection + this.shade.roughnessDeviation();
     }
     this.render = function(){
         self.postMessage({kind: 'planeCollider', planeCollider: {v1: this.line.v1, v2: this.line.v2}});
@@ -193,11 +202,12 @@ function SphereLight(vector, radius, color){
         if (i == undefined){
             i = 0;
         }
-        const rndAngle = 250;
+        const rndAngle = (Math.random() * 360);
+        // const rndAngle = 270;
         const radians = rndAngle * Math.PI / 180;
         const x = vector.x + (radius * Math.cos(radians));
         const y = vector.y + (radius * Math.sin(radians));
-        const rndDirection = rndAngle + ((Math.random() * 60) - 30);
+        const rndDirection = (rndAngle + ((Math.random() * 90) - 45)).toFixed(2);
         const photon = new Photon(new Vector2D(x, y), color, 1, rndDirection);
 
         if (photonId.indexOf(photon.id) !== -1){
@@ -231,8 +241,11 @@ lightSphere.emmitPhoton();
 
 objects.addObjects(lightSphere);
 
-const pc1 = new PlaneCollider(new Line(new Vector2D(200,300), new Vector2D(500,350)), new Shade(new Color(200,200,200), 0.0, 0.0));
-const pc2 = new PlaneCollider(new Line(new Vector2D(200,730), new Vector2D(350,710)), new Shade(new Color(200,200,200), 0.0, 0.0));
+const botton = new PlaneCollider(new Line(new Vector2D(0,0), new Vector2D(1920,0)), new Shade(new Color(200,200,200), 0.5, 0.0));
+objects.addObjects(botton);
+
+const pc1 = new PlaneCollider(new Line(new Vector2D(200,300), new Vector2D(500,350)), new Shade(new Color(200,200,200), 0.3, 0.0));
+const pc2 = new PlaneCollider(new Line(new Vector2D(200,730), new Vector2D(350,710)), new Shade(new Color(200,200,200), 0.2, 0.0));
 objects.addObjects(pc1);
 objects.addObjects(pc2);
 

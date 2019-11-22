@@ -29,15 +29,17 @@ function drawLine(raycast){
     ctx.lineTo(x2, y2);
     ctx.lineWidth = 1;
 
-    const max = 0.01;
-    const min = 0.002;
+    const max = 0.02;
+    const min = 0.004;
 
     // newvalue= (max-min)*(value-1)+max
 
     const nStart = (max-min)*(raycast.startPower-1)+max;
     const nEnd = (max-min)*(raycast.endPower-1)+max;
+    const middle  = (nStart - nEnd) / 2 + nEnd;
     let gradient = ctx.createLinearGradient(x1, y1, x2, y2);
     gradient.addColorStop(0, `rgba(255, 255, 255, ${nStart})`);
+    gradient.addColorStop(0.1, `rgba(255, 255, 255, ${middle})`);
     gradient.addColorStop(1, `rgba(255, 255, 255, ${nEnd})`);
     ctx.strokeStyle = gradient;
 

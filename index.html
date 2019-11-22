@@ -4,13 +4,29 @@
         <meta charset="utf-8">
         <!-- <meta http-equiv="refresh" content="1" > -->
 		<title>Light Paint</title>
+		<script src="https://code.jquery.com/jquery-3.4.1.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
 		<style>
 			body { margin: 0; background-color: black}
-			canvas { border-color: aliceblue; border: 1px }
+			canvas { 
+				border-color: aliceblue; 
+				border: 1px 
+			}
+			.counter-wrapper{
+				color: white;
+				/* background-color: red; */
+				position: fixed;
+				top: 0;
+				width: 250px;
+				padding: 15px;
+				height: 100px;
+			}
         </style>
         <script type="module" src="main.js"></script>
 	</head>
 	<body>
-            <canvas id="canvas"></canvas>
+			<canvas id="canvas"></canvas>
+			<div class="counter-wrapper">
+				<p>Raycast: <span id="ray_counter">0</span> </p>
+			</div>
 	</body>
 </html>
