@@ -1,5 +1,37 @@
 var canvasWidth = 1920;
 var canvasHeight = 1080;
+ 
+
+function drawLine(raytrace){
+    ctx.beginPath();
+    const x1 = raytrace.line.v1.x;
+    const y1 = raytrace.line.v1.y;
+    const x2 = raytrace.line.v2.x;
+    const y2 = raytrace.line.v2.y;
+    ctx.moveTo(x1, y1);
+    ctx.lineTo(x2, y2);
+    ctx.lineWidth = 1;
+
+    const max = 0.01;
+    const min = 0.004;
+
+    // newvalue= (max-min)*(value-1)+max
+
+    const nStart = (max-min)*(raytrace.startPower-1)+max;
+    const nEnd = (max-min)*(raytrace.endPower-1)+max;
+    const middle  = (nStart - nEnd) / 2 + nEnd;
+    let gradient = ctx.createLinearGradient(x1, y1, x2, y2);
+    gradient.addColorStop(0, `rgba(255, 255, 255, ${nStart})`);
+    gradient.addColorStop(0.1, `rgba(255, 255, 255, ${middle})`);
+    gradient.addColorStop(1, `rgba(255, 255, 255, ${nEnd})`);
+    ctx.strokeStyle = gradient;
+
+
+    ctx.stroke();
+}
+
+
+//////////////// END OF CANVAS /////////////
 
 function distance(v1, v2){
     return Math.sqrt(Math.pow(v1.x-v2.x, 2) + Math.pow(v1.y-v2.y, 2));
@@ -63,8 +95,7 @@ function reflectLine(line, currentDir){
 }
 
 function Raytrace(line, color, startPower, endPower){
-    this.v1 = line.v1;
-    this.v2 = line.v2;
+    this.line = line;
     this.color = color;
     this.startPower = startPower;
     this.endPower = endPower;
@@ -188,7 +219,6 @@ function PlaneCollider(line, shade){
         return newDirection + this.shade.roughnessDeviation();
     }
     this.render = function(){
-        self.postMessage({kind: 'planeCollider', planeCollider: {v1: this.line.v1, v2: this.line.v2}});
     }
 }
 
@@ -223,7 +253,12 @@ function SphereLight(vector, radius, color){
     }
 
     this.render = function(){
-        self.postMessage({kind: 'sphere', sphere: {vector: this.vector, radius: this.radius}});
+        ctx.beginPath();
+        ctx.arc(this.vector.x, this.vector.y, this.radius, 0, 2 * Math.PI, true);
+        ctx.strokeStyle = 'white';
+        ctx.fillStyle = 'white';
+        ctx.fill();
+        ctx.stroke();
     }
     this.reflectAngle = function(direction){
         return 90;
@@ -252,19 +287,23 @@ objects.addObjects(botton);
 
 
 
-self.addEventListener('message', function(e) {
-    if (e.data.kind === 'createLight'){
-        const lightSphere = new SphereLight(new Vector2D(600,600), 30, new Color(200,200,200))
+onmessage = function(e) {
+    if (e.data.canvas !== undefined){
+        canvas = e.data.canvas;
+        canvas.width = 1920;
+        canvas.height = 1080;
+        ctx = canvas.getContext("2d");
+        ctx.translate(0, canvas.height);
+        ctx.scale(1, -1);
+        return;
+    }
+    if (e.data.lightSphere !== undefined){
+        const light = e.data.lightSphere;
+        const lightSphere = new SphereLight(
+            new Vector2D(light.center.x,light.center.y), 
+            light.radius, 
+            new Color(light.color.r,light.color.g,light.color.b)
+        )
         objects.addObjects(lightSphere);
     }
-    // if (photons.length < 1){
-    //     lightSphere.emmitPhoton();
-    // }
-    // const p = photons.pop();
-    // if (p !== undefined){
-    //     p.raytrace();
-    // }
-    
-    //photons[Math.floor(Math.random() * photons.length)].raytrace();
-
-}, false);
+}
