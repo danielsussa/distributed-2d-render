@@ -1,23 +1,7 @@
-// const canvas = new OffscreenCanvas(100, 1);
-// canvas.width  = 1920;
-// canvas.height = 1080;
-// var canvasWidth = canvas.width;
-// var canvasHeight = canvas.height;
-// var ctx = canvas.getContext("2d",  { alpha: false });
-// var canvasData = ctx.getImageData(0, 0, canvasWidth, canvasHeight);
-// // var requestAnimationFrame = window.requestAnimationFrame || window.mozRequestAnimationFrame || window.webkitRequestAnimationFrame || window.msRequestAnimationFrame;
-
 
 var ctx;
+var canvas;
 
-function drawPixel(pixel){
-    ctx.beginPath();
-    ctx.arc(pixel.vector.x, pixel.vector.y, 1, 2, 10 * Math.PI);
-    ctx.fillStyle = 'white';
-    ctx.globalAlpha = 0.05
-    ctx.fill();
-    self.postMessage({data: 'ok'});
-}
 
 function drawLine(raycast){
     ctx.beginPath();
@@ -29,7 +13,7 @@ function drawLine(raycast){
     ctx.lineTo(x2, y2);
     ctx.lineWidth = 1;
 
-    const max = 0.02;
+    const max = 0.01;
     const min = 0.004;
 
     // newvalue= (max-min)*(value-1)+max
@@ -45,7 +29,6 @@ function drawLine(raycast){
 
 
     ctx.stroke();
-    self.postMessage({data: 'ok'});
 }
 
 function drawPlane(line){
@@ -70,24 +53,42 @@ function drawSphere(sphere){
     ctx.stroke();
 }
 
+function renderBase64(){
+    const blob = canvas.convertToBlob({
+        type: "image/jpeg",
+        quality: 0.5
+      }).then(function(blob){
+        self.postMessage({blob: blob});
+
+      });
+}
+
+function readImage(data){
+    ctx.drawImage("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAIAAAACDbGyAAAAAXNSR0IArs4c6QAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB9oMCRUiMrIBQVkAAAAZdEVYdENvbW1lbnQAQ3JlYXRlZCB3aXRoIEdJTVBXgQ4XAAAADElEQVQI12NgoC4AAABQAAEiE+h1AAAAAElFTkSuQmCC", 0, 0);
+}
 onmessage = function(evt) {
     if (evt.data.canvas !== undefined){
-        var canvas = evt.data.canvas;
+        canvas = evt.data.canvas;
         ctx = canvas.getContext("2d");
         ctx.translate(0, canvas.height);
         ctx.scale(1, -1);
         return;
     }
-    if (evt.data.kind === 'photon'){
-        drawPixel(evt.data.pixel);
-    }
+
     if (evt.data.kind === 'sphere'){
         drawSphere(evt.data.sphere);
     }
     if (evt.data.kind === 'raytrace'){
         drawLine(evt.data.raytrace);
+        self.postMessage({data: 'ok'});
+    }
+    if (evt.data.kind === 'convert'){
+        renderBase64();
+    }
+    if (evt.data.kind === 'render'){
+        readImage(evt.data.file);
     }
     if (evt.data.kind === 'planeCollider'){
         drawPlane(evt.data.planeCollider);
     }
-  };
+};

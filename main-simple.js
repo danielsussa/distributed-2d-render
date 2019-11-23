@@ -4,6 +4,7 @@ offscreen.height = 1024;
 
 var renderWorker = new Worker('render-worker.js');
 var lightWorker = new Worker('light-worker.js');
+var backendWorker = new Worker('backend-worker.js');
 
 renderWorker.postMessage({canvas: offscreen}, [offscreen]);
 
@@ -11,6 +12,10 @@ renderWorker.postMessage({canvas: offscreen}, [offscreen]);
 var pixelsToRender = [];
 
 var rayCounter = 0;
+
+$( ".fa-sun" ).click(function() {
+    $( ".wireframe-sphere-light" ).clone().appendTo("body").show();
+})
 
 lightWorker.addEventListener('message', function(e) {
     

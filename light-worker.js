@@ -68,7 +68,8 @@ function Raytrace(line, color, startPower, endPower){
     this.color = color;
     this.startPower = startPower;
     this.endPower = endPower;
-}
+} 
+
 function Photon(v, c, p, d){
     this.id = JSON.stringify({v: v, d: d});
     this.vector = v;
@@ -235,31 +236,34 @@ function SphereLight(vector, radius, color){
 var objects = new Objects();
 
 
-const lightSphere = new SphereLight(new Vector2D(400,600), 30, new Color(200,200,200))
-lightSphere.emmitPhoton();
-// self.postMessage(JSON.stringify(lightSphere));
+// const lightSphere = new SphereLight(new Vector2D(400,600), 30, new Color(200,200,200))
+// lightSphere.emmitPhoton();
 
-objects.addObjects(lightSphere);
+// objects.addObjects(lightSphere);
 
 const botton = new PlaneCollider(new Line(new Vector2D(0,0), new Vector2D(1920,0)), new Shade(new Color(200,200,200), 0.5, 0.0));
 objects.addObjects(botton);
 
-const pc1 = new PlaneCollider(new Line(new Vector2D(200,300), new Vector2D(500,350)), new Shade(new Color(200,200,200), 0.3, 0.0));
-const pc2 = new PlaneCollider(new Line(new Vector2D(200,730), new Vector2D(350,710)), new Shade(new Color(200,200,200), 0.2, 0.0));
-objects.addObjects(pc1);
-objects.addObjects(pc2);
+// const pc1 = new PlaneCollider(new Line(new Vector2D(200,300), new Vector2D(500,350)), new Shade(new Color(200,200,200), 0.3, 0.0));
+// const pc2 = new PlaneCollider(new Line(new Vector2D(200,730), new Vector2D(350,710)), new Shade(new Color(200,200,200), 0.2, 0.0));
+// objects.addObjects(pc1);
+// objects.addObjects(pc2);
 
 
 
 
 self.addEventListener('message', function(e) {
-    if (photons.length < 1){
-        lightSphere.emmitPhoton();
+    if (e.data.kind === 'createLight'){
+        const lightSphere = new SphereLight(new Vector2D(600,600), 30, new Color(200,200,200))
+        objects.addObjects(lightSphere);
     }
-    const p = photons.pop();
-    if (p !== undefined){
-        p.raytrace();
-    }
+    // if (photons.length < 1){
+    //     lightSphere.emmitPhoton();
+    // }
+    // const p = photons.pop();
+    // if (p !== undefined){
+    //     p.raytrace();
+    // }
     
     //photons[Math.floor(Math.random() * photons.length)].raytrace();
 
