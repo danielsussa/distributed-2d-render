@@ -166,6 +166,23 @@ function Line(v1, v2) {
 
 }
 
+function distanceFromVector(l,v){
+    function getDIstance(v1, v2){
+        return Math.pow(v1.x - v2.x,2) + Math.pow(v1.y - v2.y, 2);
+    }
+    const d = getDIstance(v1, v2);
+    const x0 = v.x;
+    const y0 = v.y;
+    const x1 = l.v1.x;
+    const y1 = l.v1.y;
+    const x2 = l.v2.x;
+    const y2 = l.v2.y;
+    const t = ((x0 - x1) * (x2 - x1) + (y0 - y1) * (y2 - y1)) / d;
+    t = Math.max(0, Math.min(1, t));
+    const distance = Math.sqrt(getDIstance(v, new Vector(x1 + t * (x2 - x1),y1 + t * (y2 - y1))));
+    return distance;
+}
+
 function getLinesIntercection(l1, l2){
     const x1 = l1.v1.x;
     const y1 = l1.v1.y;
@@ -307,6 +324,7 @@ onmessage = function(e) {
         objects.addObjects(lightSphere);
     }
     if (e.data.pixelMap !== undefined){
+        this.console.log(e.data.pixelMap)
         // usar algoritmo de distancia entre um vetor e uma linha https://en.m.wikipedia.org/wiki/Distance_from_a_point_to_a_line
         // se ocorrer da distancia ser alta, descartar outros vetores proximos
     }
