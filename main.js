@@ -1,3 +1,6 @@
+import { process } from "./draw-canvas.js";
+
+
 const canvasOffscreen = document.getElementById('light-canvas').transferControlToOffscreen();
 
 const canvasHeight = 1080;
@@ -25,10 +28,12 @@ $( ".render-wrapper" ).click(function() {
             color: convertColor(sphereDOM), 
             center: getCenterOfSphere(sphereDOM)
         }
-        lightWorker.postMessage({lightSphere:sphere})
+        lightWorker.postMessage({lightSphere:sphere});
     } 
     $(".frame-draw").fadeOut();
     $(".light-element").fadeOut();
+    const data = process();
+    lightWorker.postMessage({pixelMap:data});
 })
 
 function convertColor(dom){

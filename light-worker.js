@@ -306,4 +306,8 @@ onmessage = function(e) {
         )
         objects.addObjects(lightSphere);
     }
+    if (e.data.pixelMap !== undefined){
+        // usar algoritmo de distancia entre um vetor e uma linha https://en.m.wikipedia.org/wiki/Distance_from_a_point_to_a_line
+        // se ocorrer da distancia ser alta, descartar outros vetores proximos
+    }
 }
