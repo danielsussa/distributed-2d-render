@@ -3,15 +3,72 @@ canvas.width = 1920;
 canvas.height = 1080;
 var ctx = canvas.getContext('2d');
 
-var surfaceInfo = {
-
-}
 
 ctx.strokeStyle = "#fff";
 ctx.lineWidth = 2;
+const rect = canvas.getBoundingClientRect();
+
+function debugDrawPixel(v){
+  ctx.fillStyle = "#FF0000";
+  ctx.fillRect( v.x, v.y, 2, 2 );
+}
+
+var mousePositions = [];
+
+
+
+function pushGap(nextVector){
+  const currentVector = mousePositions[mousePositions.length - 1];
+  const line = {v1: currentVector, v2: nextVector};
+
+  var iter = 0.0;
+  while (iter < 1){
+    iter += 0.01;
+    const currentX = line.v1.x + (line.v2.x - line.v1.x) * iter;
+    const currentY = line.v1.y + (line.v2.y - line.v1.y) * iter;
+    mousePositions.push({x: Math.floor(currentX), y: Math.floor(currentY)});
+  }
+
+  mousePositions.push(nextVector);
+}
+
+var mapOfDirection = new Map();
+
+function calculateNormal(){
+  const factor = 30;
+  for (var i = factor ; i < mousePositions.length - factor ; i++){
+    const startVector = mousePositions[i-factor];
+    const endVector = mousePositions[i + factor];
+    const direction = directionOfLine(startVector, endVector);
+
+    var currentVector = mousePositions[i];
+    debugDrawPixel(currentVector)
+    mapOfDirection.set(`${currentVector.x}_${currentVector.y}`, direction);
+  }
+  mousePositions = [];
+}
+
+// function sumOfAngle(angle, sum){
+//   const finalAngle = angle + sum;
+//   if (finalAngle < 0){
+//       return 360 + finalAngle;
+//   }
+//   if (finalAngle > 360){
+//     return 360 - finalAngle;
+//   }
+//   return finalAngle;
+// }
+
+function directionOfLine(v1, v2) {
+  var dy = v1.y - v2.y;
+  var dx = v2.x - v1.x;
+  var theta = Math.atan2(dy, dx); // range (-PI, PI]
+  theta *= 180 / Math.PI; // rads to degs, range (-180, 180]
+  if (theta < 0) theta = 360 + theta; // range [0, 360)
+  return theta;
+}
 
 function getMousePos(canvas, evt) {
-  var rect = canvas.getBoundingClientRect();
   return {
     x: evt.clientX - rect.left,
     y: evt.clientY - rect.top
@@ -20,12 +77,17 @@ function getMousePos(canvas, evt) {
 
 function mouseMove(evt) {
   var mousePos = getMousePos(canvas, evt);
+
+    // get the normal from here
+  pushGap(mousePos);
+
   ctx.lineTo(mousePos.x, mousePos.y);
   ctx.stroke();
 }
 
 canvas.addEventListener('mousedown', function (evt) {
   var mousePos = getMousePos(canvas, evt);
+  mousePositions.push(mousePos);
   ctx.beginPath();
   ctx.moveTo(mousePos.x, mousePos.y);
   evt.preventDefault();
@@ -33,6 +95,7 @@ canvas.addEventListener('mousedown', function (evt) {
 });
 
 canvas.addEventListener('mouseup', function () {
+  calculateNormal();
   canvas.removeEventListener('mousemove', mouseMove, false);
 }, false);
 
@@ -65,7 +128,12 @@ export function process() {
 
     const x = (i / 4) % canvas.width;
     const y = Math.floor((i / 4) / canvas.width);
-    const coord = { x: x, y: y };
+
+    const yTransformed = y * -1 + canvas.height
+    var coord = { x: x, y: yTransformed };
+    if (mapOfDirection.has(`${x}_${y}`)){
+      coord.direction = mapOfDirection.get(`${x}_${y}`);
+    }
     if (pixelMap.has(key)) {
       pixelMap.get(key).push(coord);
     } else {

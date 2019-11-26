@@ -1,6 +1,52 @@
-var canvasWidth = 1920;
-var canvasHeight = 1080;
- 
+const canvasWidth = 1920;
+const canvasHeight = 1080;
+
+Array.prototype.shuffle = function() {
+    var i = this.length, j, temp;
+    if ( i == 0 ) return this;
+    while ( --i ) {
+       j = Math.floor( Math.random() * ( i + 1 ) );
+       temp = this[i];
+       this[i] = this[j];
+       this[j] = temp;
+    }
+    return this;
+  }
+
+var sceneInfo = {
+    surfaces:[],
+    lights:[],
+    vectors: [],
+    vectorMap: new Map(),
+    toRender: null
+}
+
+function drawCircle(c){
+    ctx.beginPath();
+    ctx.arc(c.center.x, c.center.y, c.radius, 0, 2 * Math.PI, true);
+    ctx.strokeStyle = 'white';
+    ctx.fillStyle = 'white';
+    ctx.fill();
+    ctx.stroke();
+}
+
+function debugDrawPixel(v){
+    ctx.fillStyle = "#FF0000";
+    ctx.fillRect( v.x, v.y, 1, 1 );
+}
+
+function debugLineRender(line){
+    ctx.beginPath();
+    const x1 = line.v1.x;
+    const y1 = line.v1.y;
+    const x2 = line.v2.x;
+    const y2 = line.v2.y;
+    ctx.moveTo(x1, y1);
+    ctx.lineTo(x2, y2);
+    ctx.lineWidth = 1;
+    ctx.strokeStyle = "#FF0000";
+    ctx.stroke();
+}
 
 function drawLine(raytrace){
     ctx.beginPath();
@@ -71,6 +117,23 @@ var raytraces = [];
 
 function slope(v1, v2){
     return (v2.y - v1.y) / (v2.x - v1.x);
+}
+
+function getNewDirection(traceDirection, colliderNormal){
+    function degrees_to_radians(degrees){
+        var pi = Math.PI;
+        return degrees * (pi/180);
+    }
+    function radians_to_degrees(radians){
+        var pi = Math.PI;
+        return radians / (pi/180);
+    }
+    const normalInv = colliderNormal + radians_to_degrees(degrees_to_radians(180));
+    const inversdeDir = radians_to_degrees(degrees_to_radians(traceDirection) + degrees_to_radians(180));
+    if (Math.abs(inversdeDir - colliderNormal) > Math.abs(inversdeDir - normalInv)){
+        return inversdeDir - (inversdeDir - normalInv) * 2;
+    }
+    return (inversdeDir - colliderNormal) * 2 + inversdeDir;
 }
 
 function reflectLine(line, currentDir){
@@ -154,10 +217,11 @@ function Vector2D(x, y){
     this.y = y;
 }
 
-function Color(r, g, b){
+function Color(r, g, b, a){
     this.r = r;
     this.g = g;
     this.b = b;
+    this.a = a;
 }
 
 function Line(v1, v2) {
@@ -167,19 +231,21 @@ function Line(v1, v2) {
 }
 
 function distanceFromVector(l,v){
-    function getDIstance(v1, v2){
+    
+    function getDistance(v1, v2){
         return Math.pow(v1.x - v2.x,2) + Math.pow(v1.y - v2.y, 2);
     }
-    const d = getDIstance(v1, v2);
+    const d = getDistance(l.v1, l.v2);
     const x0 = v.x;
     const y0 = v.y;
     const x1 = l.v1.x;
     const y1 = l.v1.y;
     const x2 = l.v2.x;
     const y2 = l.v2.y;
-    const t = ((x0 - x1) * (x2 - x1) + (y0 - y1) * (y2 - y1)) / d;
+    var t = ((x0 - x1) * (x2 - x1) + (y0 - y1) * (y2 - y1)) / d;
     t = Math.max(0, Math.min(1, t));
-    const distance = Math.sqrt(getDIstance(v, new Vector(x1 + t * (x2 - x1),y1 + t * (y2 - y1))));
+    const vt = new Vector2D(x1 + t * (x2 - x1),y1 + t * (y2 - y1));
+    const distance = Math.sqrt(getDistance(v, vt));
     return distance;
 }
 
@@ -285,23 +351,92 @@ function SphereLight(vector, radius, color){
     }
 }
 
-var objects = new Objects();
+function render(){
+    // render lights
+    sceneInfo.lights.forEach(x => {
+        drawCircle(x);
+    });
+    const surfacesVector = sceneInfo.vectors.filter(x => x.kind === 'surface');
+    if (sceneInfo.toRender === null){
+        // find all pixels that represent light
+        const lightVectors = sceneInfo.vectors.filter(x => x.kind === 'light').shuffle();
+        lightVectors.forEach(pixelInfo => {
+            const lightInfo = sceneInfo.lights[pixelInfo.index];
+            const vStart = new Vector2D(pixelInfo.x, pixelInfo.y);
+
+            // end of line
+            const x = vStart.x + (3000 * Math.cos(pixelInfo.angle * Math.PI / 180));
+            const y = vStart.y + (3000 * Math.sin(pixelInfo.angle * Math.PI / 180));
+            var vEnd = new Vector2D(x, y);
+            var line = new Line(vStart, vEnd);
+            
+            // check if collide
+            var minDistance = 10000;
+            var colliderDirection = null;
+            surfacesVector.filter(s => distanceFromVector(line, new Vector2D(s.x, s.y)) < 1).forEach(s => {
+                if (s.direction !== undefined){
+                    colliderDirection = s.direction;
+                }
+                vEnd = new Vector2D(s.x, s.y);
+                const newDistance = distance(vStart, vEnd);
+                if (newDistance < minDistance){
+                    line = new Line(vStart, vEnd);
+                    minDistance = newDistance;
+
+                }
+            })
+            // force colliderDirection in case of fail
+            surfacesVector.filter(s => distanceFromVector(line, new Vector2D(s.x, s.y)) < 5).forEach(s => {
+                if (s.direction !== undefined){
+                    colliderDirection = s.direction;
+                }
+            });
+            // const newDirection = getNewDirection(pixelInfo.angle, colliderDirection);
+            console.log(colliderDirection);
+            debugLineRender(line);
+        })
+    }
+}
 
 
-// const lightSphere = new SphereLight(new Vector2D(400,600), 30, new Color(200,200,200))
-// lightSphere.emmitPhoton();
+function extractDataFromSphereDOM(light){
+    sceneInfo.lights.push(light);
+    const idx = sceneInfo.lights.length - 1;
+    // get all pixels
+    // for (var i = 0; i < 360; i++){
+    //     const angle = i;
+    //     const radians = angle * Math.PI / 180;
+    //     const x = light.center.x + (light.radius * Math.cos(radians));
+    //     const y = light.center.y + (light.radius * Math.sin(radians));
+    //     const v = {x: x, y: y,angle: angle , index: idx, kind: 'light'};
+    //     sceneInfo.vectors.push(v);
+    //     sceneInfo.vectorMap.set(`${x}_${y}`, v);
+    // }
+    const angle = 0;
+    const radians = angle * Math.PI / 180;
+    const x = light.center.x + (light.radius * Math.cos(radians));
+    const y = light.center.y + (light.radius * Math.sin(radians));
+    const v = {x: x, y: y,angle: angle , index: idx, kind: 'light'};
+    sceneInfo.vectors.push(v);
+    sceneInfo.vectorMap.set(`${x}_${y}`, v);
+}
 
-// objects.addObjects(lightSphere);
-
-const botton = new PlaneCollider(new Line(new Vector2D(0,0), new Vector2D(1920,0)), new Shade(new Color(200,200,200), 0.5, 0.0));
-objects.addObjects(botton);
-
-// const pc1 = new PlaneCollider(new Line(new Vector2D(200,300), new Vector2D(500,350)), new Shade(new Color(200,200,200), 0.3, 0.0));
-// const pc2 = new PlaneCollider(new Line(new Vector2D(200,730), new Vector2D(350,710)), new Shade(new Color(200,200,200), 0.2, 0.0));
-// objects.addObjects(pc1);
-// objects.addObjects(pc2);
-
-
+function extractDataFromDrawDOM(drawMap){
+    drawMap.forEach((values, key) => {
+        const keySpl = key.split("/");
+        const color = new Color(keySpl[0],keySpl[1], keySpl[2], keySpl[3]);
+        sceneInfo.surfaces.push({color: color, kind: 'surface'});
+        const idx = sceneInfo.surfaces.length - 1;
+        for (value of values){
+            var v = {x: value.x, y: value.y, index: idx, kind: 'surface'};
+            if (value.direction !== undefined){
+                v.direction = value.direction;
+            }
+            sceneInfo.vectors.push(v);
+            sceneInfo.vectorMap.set(`${value.x}_${value.y}`, v);
+        }
+    })
+}
 
 
 onmessage = function(e) {
@@ -315,17 +450,13 @@ onmessage = function(e) {
         return;
     }
     if (e.data.lightSphere !== undefined){
-        const light = e.data.lightSphere;
-        const lightSphere = new SphereLight(
-            new Vector2D(light.center.x,light.center.y), 
-            light.radius, 
-            new Color(light.color.r,light.color.g,light.color.b)
-        )
-        objects.addObjects(lightSphere);
+        extractDataFromSphereDOM(e.data.lightSphere);
     }
-    if (e.data.pixelMap !== undefined){
-        this.console.log(e.data.pixelMap)
-        // usar algoritmo de distancia entre um vetor e uma linha https://en.m.wikipedia.org/wiki/Distance_from_a_point_to_a_line
-        // se ocorrer da distancia ser alta, descartar outros vetores proximos
+    if (e.data.action === 'prepare'){
+        extractDataFromDrawDOM(e.data.colliders);
+        self.postMessage({action: 'send_data', data: sceneInfo});
+    }
+    if (e.data.action === 'render'){
+        render();
     }
 }

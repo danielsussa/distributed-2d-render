@@ -23,7 +23,7 @@ $( ".render-wrapper" ).click(function() {
     var sphereLightsDOM = $( ".wireframe-sphere-light");
     for (let sphereDOM of sphereLightsDOM) {
         const sphere = {
-            id: $(sphereDOM).attr('id'), 
+            kind: 'sphere',
             radius: getSphereRadius(sphereDOM), 
             color: convertColor(sphereDOM), 
             center: getCenterOfSphere(sphereDOM)
@@ -33,7 +33,7 @@ $( ".render-wrapper" ).click(function() {
     $(".frame-draw").fadeOut();
     $(".light-element").fadeOut();
     const data = process();
-    lightWorker.postMessage({pixelMap:data});
+    lightWorker.postMessage({colliders: data, action: 'prepare'});
 })
 
 function convertColor(dom){
@@ -56,6 +56,9 @@ function getCenterOfSphere(dom){
 }
 
 lightWorker.addEventListener('message', function(e) {
+    if (e.data.action === 'send_data'){
+        lightWorker.postMessage({action: 'render'});
+    }
     if (e.data.kind == 'raytrace'){
         $("#ray_counter").html(`<b>${rayCounter}</b>`)
         rayCounter = e.data.total;
