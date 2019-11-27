@@ -119,21 +119,12 @@ function slope(v1, v2){
     return (v2.y - v1.y) / (v2.x - v1.x);
 }
 
-function getNewDirection(traceDirection, colliderNormal){
-    function degrees_to_radians(degrees){
-        var pi = Math.PI;
-        return degrees * (pi/180);
-    }
-    function radians_to_degrees(radians){
-        var pi = Math.PI;
-        return radians / (pi/180);
-    }
-    const normalInv = colliderNormal + radians_to_degrees(degrees_to_radians(180));
-    const inversdeDir = radians_to_degrees(degrees_to_radians(traceDirection) + degrees_to_radians(180));
-    if (Math.abs(inversdeDir - colliderNormal) > Math.abs(inversdeDir - normalInv)){
-        return inversdeDir - (inversdeDir - normalInv) * 2;
-    }
-    return (inversdeDir - colliderNormal) * 2 + inversdeDir;
+function getNewDirection(traceDir, colliderDirection){
+    const n1 = (colliderDirection + 90) % 360;
+    const n2 = (colliderDirection + 270) % 360;
+    const normal = Math.abs(traceDir - n1) > Math.abs(traceDir - n2) ? n1 : n2;
+    const inverseTrace = (traceDir + 180) % 360;
+    return (inverseTrace + (normal - inverseTrace) * 2) % 360;
 }
 
 function reflectLine(line, currentDir){
@@ -356,69 +347,127 @@ function render(){
     sceneInfo.lights.forEach(x => {
         drawCircle(x);
     });
-    const surfacesVector = sceneInfo.vectors.filter(x => x.kind === 'surface');
+    const collidersVector = sceneInfo.vectors.filter(x => x.kind === 'surface' || x.kind === 'light');
     if (sceneInfo.toRender === null){
         // find all pixels that represent light
-        const lightVectors = sceneInfo.vectors.filter(x => x.kind === 'light').shuffle();
-        lightVectors.forEach(pixelInfo => {
-            const lightInfo = sceneInfo.lights[pixelInfo.index];
-            const vStart = new Vector2D(pixelInfo.x, pixelInfo.y);
+        const emmiterVector = sceneInfo.vectors.filter(x => x.kind === 'emmiter').shuffle();
+        emmiterVector.forEach(emmiter => {
+            function rayTrace(vStart, direction, power){    
+                // end of line
+                var x = vStart.x + (3000 * Math.cos(direction * Math.PI / 180));
+                var y = vStart.y + (3000 * Math.sin(direction * Math.PI / 180));
+                var vEnd = new Vector2D(x, y);
+                var line = new Line(vStart, vEnd);
+                
+                // check if collide
+                var minDistance = 10000;
+                var colliderDirection = null;
+                var colliderIsLight = false;
+                var hasCollision = false;
+                collidersVector
+                    .filter(c => distanceFromVector(line, new Vector2D(c.x, c.y)) < 1)
+                    .forEach(collider => {
+                        // if the collider is the emmiter
+                        if (collider.x === emmiter.x && collider.y === emmiter.y){
+                            return;
+                        }
+                        if (collider.kind === 'light'){
+                            colliderIsLight = true;
+                        }
+                        hasCollision = true;
+                        if (collider.direction !== undefined){
+                            colliderDirection = collider.direction;
+                        }
+                        vEnd = new Vector2D(collider.x, collider.y);
+                        const newDistance = distance(vStart, vEnd);
+                        if (newDistance < minDistance){
+                            line = new Line(vStart, vEnd);
+                            minDistance = newDistance;
+        
+                        }
+                })
+                if (hasCollision && !colliderIsLight){
+                    // force colliderDirection in case of fail
+                    if (colliderDirection === null){
+                        collidersVector.filter(s => distanceFromVector(line, new Vector2D(s.x, s.y)) < 5).forEach(s => {
+                            if (s.direction !== undefined){
+                                colliderDirection = s.direction;
+                            }
+                        });
+                    }
 
-            // end of line
-            const x = vStart.x + (3000 * Math.cos(pixelInfo.angle * Math.PI / 180));
-            const y = vStart.y + (3000 * Math.sin(pixelInfo.angle * Math.PI / 180));
-            var vEnd = new Vector2D(x, y);
-            var line = new Line(vStart, vEnd);
-            
-            // check if collide
-            var minDistance = 10000;
-            var colliderDirection = null;
-            surfacesVector.filter(s => distanceFromVector(line, new Vector2D(s.x, s.y)) < 1).forEach(s => {
-                if (s.direction !== undefined){
-                    colliderDirection = s.direction;
-                }
-                vEnd = new Vector2D(s.x, s.y);
-                const newDistance = distance(vStart, vEnd);
-                if (newDistance < minDistance){
-                    line = new Line(vStart, vEnd);
-                    minDistance = newDistance;
+                    function walkThrowCollider(vEnd, direction, isTransparent){
+                        if (isTransparent === undefined){
+                            isTransparent = true;
+                        }
+                        const vMap = sceneInfo.vectorMap.get(`${Math.floor(vEnd.x)}_${Math.floor(vEnd.y)}`);
 
+                        if (vMap === undefined){
+                            const finalVector = new Vector2D(Math.floor(vEnd.x), Math.floor(vEnd.y))
+                            return {isTransparent: isTransparent, vEnd: finalVector, direction: direction};
+                        }
+
+                        const surface = sceneInfo.surfaces[vMap.index];
+                        const transparency = surface.color.a / 255;
+
+                        // this surface is solid
+                        if (transparency > 0.8 && isTransparent){
+                            direction = getNewDirection(direction, colliderDirection);
+                            isTransparent = false;
+
+                        }
+                        return walkThrowCollider(move(vEnd, 0.1, direction), direction, isTransparent);
+                    }
+                    const rayTraceInfo = walkThrowCollider(vEnd, direction);
+
+
+                     function calculatePower(line, currentPower){
+                        const dist = distance(line.v1, line.v2);
+                        const steps = dist / 50 < 1 ? 1 :  dist / 50;
+                        for (var i = 0 ; i < steps ; i++){
+                            currentPower = currentPower / 1.003;
+                        } 
+                        return currentPower;
+                    }
+                    // const newPower = calculatePower(line, power);
+                    rayTrace(rayTraceInfo.vEnd, rayTraceInfo.direction);
                 }
-            })
-            // force colliderDirection in case of fail
-            surfacesVector.filter(s => distanceFromVector(line, new Vector2D(s.x, s.y)) < 5).forEach(s => {
-                if (s.direction !== undefined){
-                    colliderDirection = s.direction;
-                }
-            });
-            // const newDirection = getNewDirection(pixelInfo.angle, colliderDirection);
-            console.log(colliderDirection);
-            debugLineRender(line);
+                debugLineRender(line);
+            }
+            rayTrace(new Vector2D(emmiter.x, emmiter.y), emmiter.direction, 255);
         })
     }
+
+    
+}
+
+function move(vector, distance, angle){
+    const newX = vector.x + distance * Math.cos(angle * Math.PI / 180)
+    const newY = vector.y + distance * Math.sin(angle * Math.PI / 180)
+    return new Vector2D(newX, newY);
 }
 
 
 function extractDataFromSphereDOM(light){
     sceneInfo.lights.push(light);
     const idx = sceneInfo.lights.length - 1;
+
+
     // get all pixels
-    // for (var i = 0; i < 360; i++){
-    //     const angle = i;
-    //     const radians = angle * Math.PI / 180;
-    //     const x = light.center.x + (light.radius * Math.cos(radians));
-    //     const y = light.center.y + (light.radius * Math.sin(radians));
-    //     const v = {x: x, y: y,angle: angle , index: idx, kind: 'light'};
-    //     sceneInfo.vectors.push(v);
-    //     sceneInfo.vectorMap.set(`${x}_${y}`, v);
-    // }
-    const angle = 0;
-    const radians = angle * Math.PI / 180;
-    const x = light.center.x + (light.radius * Math.cos(radians));
-    const y = light.center.y + (light.radius * Math.sin(radians));
-    const v = {x: x, y: y,angle: angle , index: idx, kind: 'light'};
-    sceneInfo.vectors.push(v);
-    sceneInfo.vectorMap.set(`${x}_${y}`, v);
+    for (var i = 0; i < 360; i+= 0.1){
+        const direction = i;
+        const radians = direction * Math.PI / 180;
+        const x = light.center.x + (light.radius * Math.cos(radians));
+        const y = light.center.y + (light.radius * Math.sin(radians));
+        const v = {x: Math.floor(x), y: Math.floor(y),direction: direction , index: idx, kind: 'light'};
+        if (i === 0){
+            const e = {x: Math.floor(x), y: Math.floor(y),direction: direction , index: idx, kind: 'emmiter'};
+            sceneInfo.vectors.push(e);
+            sceneInfo.vectorMap.set(`${x}_${y}`, e);
+        }
+        sceneInfo.vectors.push(v);
+        sceneInfo.vectorMap.set(`${x}_${y}`, v);
+    }
 }
 
 function extractDataFromDrawDOM(drawMap){
