@@ -18,6 +18,21 @@
 				position:absolute;
 			}
 			.render-wrapper{
+				top: 55px;
+				left: 520px;
+				position: fixed;
+				z-index: 1000;
+				background-color: rgba(20,20,20,0.8);
+				width: 100px;
+				text-align: center;
+				cursor: pointer;
+				height: 35px;
+				cursor: pointer;
+				border-radius: 10px;
+				color: #fff;
+				border: 1px solid gray;
+			}
+			.loadscene-wrapper{
 				top: 10px;
 				left: 520px;
 				position: fixed;
@@ -26,11 +41,11 @@
 				width: 100px;
 				text-align: center;
 				cursor: pointer;
-				height: 80px;
+				height: 35px;
 				cursor: pointer;
 				border-radius: 10px;
 				color: #fff;
-				border: 1px solid gray;
+				border: 1px solid gray;	
 			}
 			.tools-wrapper{
 				display: inline-flex;
@@ -144,10 +159,12 @@
 				</div>
 			</div>
 			<div class="render-wrapper">
-				<p>START</p>
 				<p>RENDER</p>
 			</div>
-	
+			<div class="loadscene-wrapper">
+				<p>LOAD</p>
+			</div>
+
 			<div class="wireframe-sphere-light light-element" id="my_sphere"></div>
 
 			<canvas class="frame-draw" id="draw-canvas"></canvas>

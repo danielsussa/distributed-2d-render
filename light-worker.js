@@ -21,6 +21,13 @@ var sceneInfo = {
     toRender: null
 }
 
+function transformAllVectorsInMap(){
+    sceneInfo.vectorMap = new Map();
+    for (v of sceneInfo.vectors){
+        sceneInfo.vectorMap.set(`${v.x}_${v.y}`, v);
+    }
+}
+
 function drawCircle(c){
     ctx.beginPath();
     ctx.arc(c.center.x, c.center.y, c.radius, 0, 2 * Math.PI, true);
@@ -269,6 +276,7 @@ function getLinesIntercection(l1, l2){
 }
 
 
+
 function Shade(color, roughness, refraction){
     this.color = color;
     this.roughness = roughness;
@@ -352,7 +360,7 @@ function render(){
         // find all pixels that represent light
         const emmiterVector = sceneInfo.vectors.filter(x => x.kind === 'emmiter').shuffle();
         emmiterVector.forEach(emmiter => {
-            function rayTrace(vStart, direction, power){    
+            function rayTrace(vStart, direction, power){   
                 // end of line
                 var x = vStart.x + (3000 * Math.cos(direction * Math.PI / 180));
                 var y = vStart.y + (3000 * Math.sin(direction * Math.PI / 180));
@@ -368,7 +376,8 @@ function render(){
                     .filter(c => distanceFromVector(line, new Vector2D(c.x, c.y)) < 1)
                     .forEach(collider => {
                         // if the collider is the emmiter
-                        if (collider.x === emmiter.x && collider.y === emmiter.y){
+                        const newDistance = distance(vStart, new Vector2D(collider.x, collider.y));
+                        if (collider.x === emmiter.x && collider.y === emmiter.y && newDistance < 5){
                             return;
                         }
                         if (collider.kind === 'light'){
@@ -378,9 +387,9 @@ function render(){
                         if (collider.direction !== undefined){
                             colliderDirection = collider.direction;
                         }
-                        vEnd = new Vector2D(collider.x, collider.y);
-                        const newDistance = distance(vStart, vEnd);
+                        
                         if (newDistance < minDistance){
+                            vEnd = new Vector2D(collider.x, collider.y);
                             line = new Line(vStart, vEnd);
                             minDistance = newDistance;
         
@@ -395,6 +404,7 @@ function render(){
                             }
                         });
                     }
+
 
                     function walkThrowCollider(vEnd, direction, isTransparent){
                         if (isTransparent === undefined){
@@ -420,17 +430,19 @@ function render(){
                     }
                     const rayTraceInfo = walkThrowCollider(vEnd, direction);
 
-
                      function calculatePower(line, currentPower){
                         const dist = distance(line.v1, line.v2);
                         const steps = dist / 50 < 1 ? 1 :  dist / 50;
                         for (var i = 0 ; i < steps ; i++){
-                            currentPower = currentPower / 1.003;
+                            currentPower = currentPower / 1.03;
                         } 
                         return currentPower;
                     }
-                    // const newPower = calculatePower(line, power);
-                    rayTrace(rayTraceInfo.vEnd, rayTraceInfo.direction);
+                    line.v2 = rayTraceInfo.vEnd;
+                    const newPower = calculatePower(line, power);
+                    debugLineRender(line);
+                    rayTrace(rayTraceInfo.vEnd, rayTraceInfo.direction, newPower);
+                    return;
                 }
                 debugLineRender(line);
             }
@@ -505,7 +517,13 @@ onmessage = function(e) {
         extractDataFromDrawDOM(e.data.colliders);
         self.postMessage({action: 'send_data', data: sceneInfo});
     }
+    if (e.data.action === 'loadJson'){
+        sceneInfo = e.data.data;
+        transformAllVectorsInMap();
+        render();
+    }
     if (e.data.action === 'render'){
+        // this.console.log(JSON.stringify(sceneInfo))
         render();
     }
 }

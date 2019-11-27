@@ -15,6 +15,14 @@ lightWorker.postMessage({canvas: canvasOffscreen}, [canvasOffscreen]);
 
 var rayCounter = 0;
 
+$( ".loadscene-wrapper" ).click(function() {
+    $.getJSON("backend/prepare_scene1.json", function(json) {
+        lightWorker.postMessage({data:json, action: 'loadJson'});
+    });
+})
+
+
+
 $( ".render-wrapper" ).click(function() {
     // hide canvas
 
