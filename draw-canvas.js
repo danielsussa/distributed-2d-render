@@ -5,7 +5,7 @@ var ctx = canvas.getContext('2d');
 
 
 ctx.strokeStyle = "#fff";
-ctx.lineWidth = 2;
+ctx.lineWidth = 6;
 const rect = canvas.getBoundingClientRect();
 
 function debugDrawPixel(v){
@@ -42,7 +42,7 @@ function calculateNormal(){
     const direction = directionOfLine(startVector, endVector);
 
     var currentVector = mousePositions[i];
-    debugDrawPixel(currentVector)
+    // debugDrawPixel(currentVector)
     mapOfDirection.set(`${currentVector.x}_${currentVector.y}`, direction);
   }
   mousePositions = [];

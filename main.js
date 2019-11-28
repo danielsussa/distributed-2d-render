@@ -8,9 +8,11 @@ const canvasHeight = 1080;
 canvasOffscreen.width = 1920;
 canvasOffscreen.height = canvasHeight;
 
-var lightWorker = new Worker('light-worker.js');
+var lightWorker = new Worker('worker/light-worker.js');
 
-lightWorker.postMessage({canvas: canvasOffscreen}, [canvasOffscreen]);
+var renderWorker = new Worker('worker/render-worker.js');
+
+renderWorker.postMessage({canvas: canvasOffscreen}, [canvasOffscreen]);
 
 
 var rayCounter = 0;
@@ -66,6 +68,9 @@ function getCenterOfSphere(dom){
 lightWorker.addEventListener('message', function(e) {
     if (e.data.action === 'send_data'){
         lightWorker.postMessage({action: 'render'});
+    }
+    if (e.data.action === 'drawSphereLight' || e.data.action === 'debugDrawPixel' || e.data.action === `debugLineRender` || e.data.action === 'drawRaytrace'){
+        renderWorker.postMessage({action: e.data.action, data: e.data.data});
     }
     if (e.data.kind == 'raytrace'){
         $("#ray_counter").html(`<b>${rayCounter}</b>`)

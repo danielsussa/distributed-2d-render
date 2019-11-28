@@ -1,6 +1,3 @@
-const canvasWidth = 1920;
-const canvasHeight = 1080;
-
 Array.prototype.shuffle = function() {
     var i = this.length, j, temp;
     if ( i == 0 ) return this;
@@ -27,62 +24,6 @@ function transformAllVectorsInMap(){
         sceneInfo.vectorMap.set(`${v.x}_${v.y}`, v);
     }
 }
-
-function drawCircle(c){
-    ctx.beginPath();
-    ctx.arc(c.center.x, c.center.y, c.radius, 0, 2 * Math.PI, true);
-    ctx.strokeStyle = 'white';
-    ctx.fillStyle = 'white';
-    ctx.fill();
-    ctx.stroke();
-}
-
-function debugDrawPixel(v){
-    ctx.fillStyle = "#FF0000";
-    ctx.fillRect( v.x, v.y, 1, 1 );
-}
-
-function debugLineRender(line){
-    ctx.beginPath();
-    const x1 = line.v1.x;
-    const y1 = line.v1.y;
-    const x2 = line.v2.x;
-    const y2 = line.v2.y;
-    ctx.moveTo(x1, y1);
-    ctx.lineTo(x2, y2);
-    ctx.lineWidth = 1;
-    ctx.strokeStyle = "#FF0000";
-    ctx.stroke();
-}
-
-function drawLine(raytrace){
-    ctx.beginPath();
-    const x1 = raytrace.line.v1.x;
-    const y1 = raytrace.line.v1.y;
-    const x2 = raytrace.line.v2.x;
-    const y2 = raytrace.line.v2.y;
-    ctx.moveTo(x1, y1);
-    ctx.lineTo(x2, y2);
-    ctx.lineWidth = 1;
-
-    const max = 0.01;
-    const min = 0.004;
-
-    // newvalue= (max-min)*(value-1)+max
-
-    const nStart = (max-min)*(raytrace.startPower-1)+max;
-    const nEnd = (max-min)*(raytrace.endPower-1)+max;
-    const middle  = (nStart - nEnd) / 2 + nEnd;
-    let gradient = ctx.createLinearGradient(x1, y1, x2, y2);
-    gradient.addColorStop(0, `rgba(255, 255, 255, ${nStart})`);
-    gradient.addColorStop(0.1, `rgba(255, 255, 255, ${middle})`);
-    gradient.addColorStop(1, `rgba(255, 255, 255, ${nEnd})`);
-    ctx.strokeStyle = gradient;
-
-
-    ctx.stroke();
-}
-
 
 //////////////// END OF CANVAS /////////////
 
@@ -114,8 +55,8 @@ function Color(r, g, b, a){
 function Line(v1, v2) {
     this.v1 = v1;
     this.v2 = v2;
-
 }
+
 
 function distanceFromVector(l,v){
     
@@ -141,14 +82,14 @@ function distanceFromVector(l,v){
 function render(){
     // render lights
     sceneInfo.lights.forEach(x => {
-        drawCircle(x);
+        self.postMessage({action: 'drawSphereLight', data: x});
     });
     const collidersVector = sceneInfo.vectors.filter(x => x.kind === 'surface' || x.kind === 'light');
     if (sceneInfo.toRender === null){
         // find all pixels that represent light
         const emmiterVector = sceneInfo.vectors.filter(x => x.kind === 'emmiter').shuffle();
         emmiterVector.forEach(emmiter => {
-            function rayTrace(vStart, direction, power){   
+            function rayTrace(vStart, direction, power, color){   
                 // end of line
                 var x = vStart.x + (3000 * Math.cos(direction * Math.PI / 180));
                 var y = vStart.y + (3000 * Math.sin(direction * Math.PI / 180));
@@ -159,13 +100,14 @@ function render(){
                 var minDistance = 10000;
                 var colliderDirection = null;
                 var colliderIsLight = false;
+                var newColor = color;
                 var hasCollision = false;
                 collidersVector
                     .filter(c => distanceFromVector(line, new Vector2D(c.x, c.y)) < 1)
                     .forEach(collider => {
                         // if the collider is the emmiter
                         const newDistance = distance(vStart, new Vector2D(collider.x, collider.y));
-                        if (collider.x === emmiter.x && collider.y === emmiter.y && newDistance < 5){
+                        if (newDistance < 5){
                             return;
                         }
                         if (collider.kind === 'light'){
@@ -177,12 +119,23 @@ function render(){
                         }
                         
                         if (newDistance < minDistance){
+                            newColor = sceneInfo.surfaces[collider.index].color;
                             vEnd = new Vector2D(collider.x, collider.y);
                             line = new Line(vStart, vEnd);
                             minDistance = newDistance;
         
                         }
                 })
+
+                function calculatePower(line, currentPower){
+                    const dist = distance(line.v1, line.v2);
+                    const steps = dist / 50 < 1 ? 1 :  dist / 50;
+                    for (var i = 0 ; i < steps ; i++){
+                        currentPower = currentPower / 1.03;
+                    } 
+                    return currentPower;
+                }
+
                 if (hasCollision && !colliderIsLight){
                     // force colliderDirection in case of fail
                     if (colliderDirection === null){
@@ -218,23 +171,28 @@ function render(){
                     }
                     const rayTraceInfo = walkThrowCollider(vEnd, direction);
 
-                     function calculatePower(line, currentPower){
-                        const dist = distance(line.v1, line.v2);
-                        const steps = dist / 50 < 1 ? 1 :  dist / 50;
-                        for (var i = 0 ; i < steps ; i++){
-                            currentPower = currentPower / 1.03;
-                        } 
-                        return currentPower;
-                    }
                     line.v2 = rayTraceInfo.vEnd;
                     const newPower = calculatePower(line, power);
-                    debugLineRender(line);
-                    rayTrace(rayTraceInfo.vEnd, rayTraceInfo.direction, newPower);
+                    // self.postMessage({action: 'debugLineRender', data: line});
+                    self.postMessage({action: 'drawRaytrace', data: {
+                        line:line, 
+                        color: color, 
+                        startPower: power, 
+                        endPower: newPower
+                    }});
+                    rayTrace(rayTraceInfo.vEnd, rayTraceInfo.direction, newPower, newColor);
                     return;
                 }
-                debugLineRender(line);
+                const newPower = calculatePower(line, power);
+                // self.postMessage({action: 'debugLineRender', data: line});
+                self.postMessage({action: 'drawRaytrace', data: {
+                    line:line, 
+                    color: color, 
+                    startPower: power, 
+                    endPower: newPower
+                }});
             }
-            rayTrace(new Vector2D(emmiter.x, emmiter.y), emmiter.direction, 255);
+            rayTrace(new Vector2D(emmiter.x, emmiter.y), emmiter.direction, 1.0, sceneInfo.lights[emmiter.index].color);
         })
     }
 
@@ -254,17 +212,19 @@ function extractDataFromSphereDOM(light){
 
 
     // get all pixels
-    for (var i = 0; i < 360; i+= 0.1){
+    for (var i = 0; i < 360; i+= 1){
         const direction = i;
         const radians = direction * Math.PI / 180;
         const x = light.center.x + (light.radius * Math.cos(radians));
         const y = light.center.y + (light.radius * Math.sin(radians));
         const v = {x: Math.floor(x), y: Math.floor(y),direction: direction , index: idx, kind: 'light'};
-        if (i === 0){
-            const e = {x: Math.floor(x), y: Math.floor(y),direction: direction , index: idx, kind: 'emmiter'};
+        for (var j = -90 ; j < 90 ; j+=1){
+            const e = {x: Math.floor(x), y: Math.floor(y),direction: direction + j , index: idx, kind: 'emmiter'};
             sceneInfo.vectors.push(e);
             sceneInfo.vectorMap.set(`${x}_${y}`, e);
         }
+
+
         sceneInfo.vectors.push(v);
         sceneInfo.vectorMap.set(`${x}_${y}`, v);
     }
@@ -287,17 +247,9 @@ function extractDataFromDrawDOM(drawMap){
     })
 }
 
+var renderWorker = null;
 
 onmessage = function(e) {
-    if (e.data.canvas !== undefined){
-        canvas = e.data.canvas;
-        canvas.width = 1920;
-        canvas.height = 1080;
-        ctx = canvas.getContext("2d");
-        ctx.translate(0, canvas.height);
-        ctx.scale(1, -1);
-        return;
-    }
     if (e.data.lightSphere !== undefined){
         extractDataFromSphereDOM(e.data.lightSphere);
     }
