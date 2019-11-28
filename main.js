@@ -73,7 +73,7 @@ lightWorker.addEventListener('message', function(e) {
         renderWorker.postMessage({action: e.data.action, data: e.data.data});
     }
     if (e.data.action == 'counter'){
-        $(".ray_counter").html(`carycast: ${e.data.data}`)
+        $(".ray_counter").html(`raycast: ${e.data.data.counter} emmiters: ${e.data.data.total} `)
         // rayCounter = e.data.total;
     }
 

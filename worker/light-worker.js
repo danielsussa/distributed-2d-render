@@ -171,8 +171,14 @@ function render(){
                         }
                         return walkThrowCollider(move(vEnd, 0.1, direction), direction, isTransparent);
                     }
-                    const rayTraceInfo = walkThrowCollider(vEnd, direction);
 
+                    var rayTraceInfo = null;
+                    try{
+                        rayTraceInfo = walkThrowCollider(vEnd, direction);
+                    }catch(e){
+                            console.log(e)
+                            return;
+                    }
                     line.v2 = rayTraceInfo.vEnd;
                     const newPower = calculatePower(line, power);
                     // self.postMessage({action: 'debugLineRender', data: line});
@@ -197,8 +203,9 @@ function render(){
             rayTrace(new Vector2D(emmiter.x, emmiter.y), emmiter.direction, 1.0, sceneInfo.lights[emmiter.index].color);
 
             const rtLength = readyTraces.length;
-            self.postMessage({action: 'counter', data: rtLength});
+            
             if (rtLength % 1000 === 0){
+                self.postMessage({action: 'counter', data: {counter: rtLength, total: emmiterVector.length}});
                 self.postMessage({action: 'drawRaytrace', data: readyTraces.slice(rtLength-1000, rtLength-1)});
             }
         })
