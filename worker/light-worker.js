@@ -78,6 +78,8 @@ function distanceFromVector(l,v){
 }
 
 
+var readyTraces = [];
+
 
 function render(){
     // render lights
@@ -174,25 +176,31 @@ function render(){
                     line.v2 = rayTraceInfo.vEnd;
                     const newPower = calculatePower(line, power);
                     // self.postMessage({action: 'debugLineRender', data: line});
-                    self.postMessage({action: 'drawRaytrace', data: {
+                    readyTraces.push({
                         line:line, 
                         color: color, 
                         startPower: power, 
                         endPower: newPower
-                    }});
+                    })
                     rayTrace(rayTraceInfo.vEnd, rayTraceInfo.direction, newPower, newColor);
                     return;
                 }
                 const newPower = calculatePower(line, power);
                 // self.postMessage({action: 'debugLineRender', data: line});
-                self.postMessage({action: 'drawRaytrace', data: {
+                readyTraces.push({
                     line:line, 
                     color: color, 
                     startPower: power, 
                     endPower: newPower
-                }});
+                })
             }
             rayTrace(new Vector2D(emmiter.x, emmiter.y), emmiter.direction, 1.0, sceneInfo.lights[emmiter.index].color);
+
+            const rtLength = readyTraces.length;
+            self.postMessage({action: 'counter', data: rtLength});
+            if (rtLength % 1000 === 0){
+                self.postMessage({action: 'drawRaytrace', data: readyTraces.slice(rtLength-1000, rtLength-1)});
+            }
         })
     }
 
@@ -218,7 +226,7 @@ function extractDataFromSphereDOM(light){
         const x = light.center.x + (light.radius * Math.cos(radians));
         const y = light.center.y + (light.radius * Math.sin(radians));
         const v = {x: Math.floor(x), y: Math.floor(y),direction: direction , index: idx, kind: 'light'};
-        for (var j = -90 ; j < 90 ; j+=1){
+        for (var j = -90 ; j < 90 ; j+= 0.5){
             const e = {x: Math.floor(x), y: Math.floor(y),direction: direction + j , index: idx, kind: 'emmiter'};
             sceneInfo.vectors.push(e);
             sceneInfo.vectorMap.set(`${x}_${y}`, e);

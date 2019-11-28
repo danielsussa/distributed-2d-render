@@ -36,8 +36,8 @@ function drawRaytrace(raytrace){
     ctx.lineWidth = 1;
 
 
-    const max = 0.008;
-    const min = 0.002;
+    const max = 0.012;
+    const min = 0.004;
 
     // newvalue= (max-min)*(value-1)+max
 
@@ -75,6 +75,9 @@ onmessage = function(e) {
         drawSphereLight(e.data.data);
     }
     if (e.data.action === 'drawRaytrace'){
-        drawRaytrace(e.data.data);
+        for (d of e.data.data){
+            drawRaytrace(d);
+        }
+        
     }
 }

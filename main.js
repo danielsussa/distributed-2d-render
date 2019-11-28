@@ -72,9 +72,9 @@ lightWorker.addEventListener('message', function(e) {
     if (e.data.action === 'drawSphereLight' || e.data.action === 'debugDrawPixel' || e.data.action === `debugLineRender` || e.data.action === 'drawRaytrace'){
         renderWorker.postMessage({action: e.data.action, data: e.data.data});
     }
-    if (e.data.kind == 'raytrace'){
-        $("#ray_counter").html(`<b>${rayCounter}</b>`)
-        rayCounter = e.data.total;
+    if (e.data.action == 'counter'){
+        $(".ray_counter").html(`carycast: ${e.data.data}`)
+        // rayCounter = e.data.total;
     }
 
 }, false);

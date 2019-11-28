@@ -112,15 +112,29 @@
 				border-radius: 5px;
 			}
 			.wireframe-sphere-light{
-				width: 150px;
-				height: 150px;
 				position: absolute;
 				z-index: -1000;
-				top: 400px;
-				left: 200px;
 				/* background-color: red; */
 				background-color: aliceblue;
 				border-radius: 100%;
+			}
+			.l1{
+				width: 150px;
+				height: 150px;
+				top: 400px;
+				left: 200px;
+			}
+			.l2{
+				width: 50px;
+				height: 50px;
+				top: 700px;
+				left: 600px;
+			}
+			.ray_counter{
+				top: 100px;
+				left: 20px;
+				position: fixed;
+				color: wheat;
 			}
 
         </style>
@@ -165,10 +179,13 @@
 				<p>LOAD</p>
 			</div>
 
-			<div class="wireframe-sphere-light light-element" id="my_sphere"></div>
+			<div class="wireframe-sphere-light light-element l1"></div>
+			<div class="wireframe-sphere-light light-element l2"></div>
 
 			<canvas class="frame-draw" id="draw-canvas"></canvas>
 			<canvas class="frame-light" id="light-canvas"></canvas>
+
+			<div class="ray_counter">raycast: 0</div>
 			
 	</body>
 </html>
