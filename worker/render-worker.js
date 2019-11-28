@@ -36,8 +36,8 @@ function drawRaytrace(raytrace){
     ctx.lineWidth = 1;
 
 
-    const max = 0.012;
-    const min = 0.004;
+    const max = 0.008;
+    const min = 0.002;
 
     // newvalue= (max-min)*(value-1)+max
 

@@ -176,8 +176,8 @@ function render(){
                     try{
                         rayTraceInfo = walkThrowCollider(vEnd, direction);
                     }catch(e){
-                            console.log(e)
-                            return;
+                        console.log(e)
+                        return;
                     }
                     line.v2 = rayTraceInfo.vEnd;
                     const newPower = calculatePower(line, power);
@@ -227,7 +227,7 @@ function extractDataFromSphereDOM(light){
 
 
     // get all pixels
-    for (var i = 0; i < 360; i+= 1){
+    for (var i = 0; i < 360; i+= 0.5){
         const direction = i;
         const radians = direction * Math.PI / 180;
         const x = light.center.x + (light.radius * Math.cos(radians));
