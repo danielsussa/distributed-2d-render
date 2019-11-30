@@ -90,12 +90,14 @@ body {
 .tool-bar-wrapper{
   top: 25px;
   left: 300px;
+  z-index: 100;
   position: absolute;
   font-size: 14px;
   display: flex;
   height: 30px;
   .tool-bar-item{
     font-family: 'Russo One', sans-serif;
+    cursor: pointer;
     color: #fff;
     padding-top: 5px;
 
@@ -105,5 +107,27 @@ body {
     border-right: 1px solid wheat;
     text-align: center;
     height: 25px;
+  }
+}
+
+.sphere-light-wrapper{
+  z-index: 100;
+  padding: 10px;
+  position: absolute;
+  width: 100px;
+  height: 100px;
+  top: 300px;
+  left: 300px;
+  &.selectable{
+    touch-action: none;
+    border: 1px dashed wheat;
+  }
+  .sphere-light{
+    z-index: 100;
+    position: absolute;
+    width: 100px;
+    height: 100px;
+    background-color: #fff;
+    border-radius: 100%;
   }
 }

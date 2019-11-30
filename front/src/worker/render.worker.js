@@ -221,65 +221,20 @@ function move(vector, distance, angle){
 }
 
 
-function extractDataFromSphereDOM(light){
-    sceneInfo.lights.push(light);
-    const idx = sceneInfo.lights.length - 1;
-
-    const arcLength = 0.25;
-    const theta = (360 * arcLength) / (2 *  Math.PI * light.radius);
-    // get all pixels
-    for (var i = 0; i < 360; i+= theta){
-        const direction = i;
-        const radians = direction * Math.PI / 180;
-        const x = light.center.x + (light.radius * Math.cos(radians));
-        const y = light.center.y + (light.radius * Math.sin(radians));
-        const v = {x: Math.floor(x), y: Math.floor(y),direction: direction , index: idx, kind: 'light'};
-        for (var j = -90 ; j < 90 ; j+= 0.5){
-            const e = {x: Math.floor(x), y: Math.floor(y),direction: direction + j , index: idx, kind: 'emmiter'};
-            sceneInfo.vectors.push(e);
-            sceneInfo.vectorMap.set(`${x}_${y}`, e);
-        }
 
 
-        sceneInfo.vectors.push(v);
-        sceneInfo.vectorMap.set(`${x}_${y}`, v);
-    }
-}
-
-function extractDataFromDrawDOM(drawMap){
-    drawMap.forEach((values, key) => {
-        const keySpl = key.split("/");
-        const color = new Color(keySpl[0],keySpl[1], keySpl[2], keySpl[3]);
-        sceneInfo.surfaces.push({color: color, kind: 'surface'});
-        const idx = sceneInfo.surfaces.length - 1;
-        for (value of values){
-            var v = {x: value.x, y: value.y, index: idx, kind: 'surface'};
-            if (value.direction !== undefined){
-                v.direction = value.direction;
-            }
-            sceneInfo.vectors.push(v);
-            sceneInfo.vectorMap.set(`${value.x}_${value.y}`, v);
-        }
-    })
-}
 
 var renderWorker = null;
 
 onmessage = function(e) {
-    if (e.data.lightSphere !== undefined){
-        extractDataFromSphereDOM(e.data.lightSphere);
-    }
-    if (e.data.action === 'prepare'){
-        extractDataFromDrawDOM(e.data.colliders);
-        self.postMessage({action: 'send_data', data: sceneInfo});
-    }
     if (e.data.action === 'loadJson'){
         sceneInfo = e.data.data;
         transformAllVectorsInMap();
         render();
     }
-    if (e.data.action === 'render'){
-        // this.console.log(JSON.stringify(sceneInfo))
+    if (e.data.action === 'preview-render'){
+        sceneInfo = e.data.data;
+        self.postMessage({action: 'ready'});
         render();
     }
 }

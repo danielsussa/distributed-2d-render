@@ -12,27 +12,38 @@
 
     <h1 class="title">Light Paint - Project</h1>
 
-    <!-- <img class="colormap" src="./img_colormap.gif" usemap="#colormap_bottom" alt="colormap"> -->
-    <canvas class="color-picker" id="color-picker-canvas">
-      
-    </canvas>
-    <div class="color-selected"></div>
-
-    <div class="tool-bar-wrapper">
-        <div class="tool-bar-item">LIGHT</div>
-        <div class="tool-bar-item">COLLIDER</div>
-        <div class="tool-bar-item">SCENE</div>
+    <div class="editor-stage">
+      <canvas class="color-picker" id="color-picker-canvas"></canvas>
+      <div class="color-selected"></div>
+  
+      <div class="tool-bar-wrapper">
+          <div class="tool-bar-item create-light">LIGHT</div>
+          <div class="tool-bar-item">COLLIDER</div>
+          <div class="tool-bar-item preview-render">PREVIEW</div>
+          <div class="tool-bar-item">RENDER</div>
+      </div>
+      <div class="frame-wrapper" hidden>
+          <div class="left-up-resize"></div>
+          <div class="right-up-resize"></div>
+          <div class="left-down-resize"></div>
+          <div class="right-down-resize resizeable"></div>
+          <span class="frame-wrapper-inner">
+          </span>
+          <canvas id="draw-canvas"></canvas>
+      </div>
     </div>
+    <div class="preview-stage" hidden>
+      <div class="tool-bar-wrapper">
+        <div class="tool-bar-item create-light">PAUSE</div>
+        <div class="tool-bar-item create-light">EDITOR</div>
+      </div>
+      <div class="frame-wrapper">
+          <canvas id="light-canvas"></canvas>
+      </div>
+    </div>
+
     
 
-    <div class="frame-wrapper" hidden>
-        <div class="left-up-resize"></div>
-        <div class="right-up-resize"></div>
-        <div class="left-down-resize"></div>
-        <div class="right-down-resize resizeable"></div>
-        <span class="frame-wrapper-inner">
-        </span>
-        <canvas id="draw-canvas"></canvas>
-    </div>
+
   </body>
 </html>

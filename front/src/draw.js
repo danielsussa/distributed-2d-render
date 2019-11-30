@@ -62,7 +62,42 @@ function newCanvas(jquery){
     ctx.lineWidth = $(this).attr('id').replace('tickness_', '')
   });
 
-  $( ".color-picker").on("color", function(e, color){
+  $("body").on("prepare-draw-render", function(e){
+    function convertColor(dom){
+      const bg = $(dom).css("background-color");
+      const arr = bg.replace(/^(rgb|rgba)\(/,'').replace(/\)$/,'').replace(/\s/g,'').split(',');
+      return {r: arr[0], g: arr[1], b: arr[2]}
+    }
+    function getSphereRadius(dom){
+        const diameter = parseInt($(dom).css("width").replace('px',''));
+        return diameter/2;
+    }
+    function getCenterOfSphere(dom){
+        const top = parseInt($(dom).css("top").replace('px',''));
+        const left = parseInt($(dom).css("left").replace('px',''));
+        const diameter = parseInt($(dom).css("width").replace('px',''));
+        const x = left + diameter / 2;
+        const y = canvas.height - top - diameter / 2;
+        return {x: x, y: y};
+    }
+    var sphereLightsDOM = $(".sphere-light-wrapper");
+    var lights = [];
+    
+    for (const sphereDOM of sphereLightsDOM) {
+        const children = $(sphereDOM).children()
+        const sphere = {
+            kind: 'sphere',
+            radius: getSphereRadius(sphereDOM), 
+            color: convertColor(children), 
+            center: getCenterOfSphere(sphereDOM)
+        }
+        lights.push(sphere);
+    } 
+    const sceneInfo = extractDataFromScene(process(), lights);
+    $( "body").trigger( "draw-render-info", sceneInfo);
+  })
+
+  $(".color-picker").on("color", function(e, color){
     ctx.strokeStyle = color;
   })
 }
@@ -164,6 +199,49 @@ function process() {
   return pixelMap;
 }
 
+function extractDataFromScene(drawMap, lights){
+  const vectors = [];
+  const surfaces = [];
+  const vectorMap = new Map();
+  // surface extract
+  drawMap.forEach((values, key) => {
+      const keySpl = key.split("/");
+      const color = {r: keySpl[0], g: keySpl[1], b: keySpl[2], a: keySpl[3]}
+      surfaces.push({color: color, kind: 'surface'});
+      const idx = surfaces.length - 1;
+      for (value of values){
+          var v = {x: value.x, y: value.y, index: idx, kind: 'surface'};
+          if (value.direction !== undefined){
+              v.direction = value.direction;
+          }
+          vectors.push(v);
+          vectorMap.set(`${value.x}_${value.y}`, v);
+      }
+  })
+
+  // light extract
+  for (var idx = 0 ; idx < lights.length ; idx++){
+    const light = lights[idx];
+    const arcLength = 0.25;
+    const theta = (360 * arcLength) / (2 *  Math.PI * light.radius);
+    // get all pixels
+    for (var i = 0; i < 360; i+= theta){
+        const direction = i;
+        const radians = direction * Math.PI / 180;
+        const x = light.center.x + (light.radius * Math.cos(radians));
+        const y = light.center.y + (light.radius * Math.sin(radians));
+        const v = {x: Math.floor(x), y: Math.floor(y),direction: direction , index: idx, kind: 'light'};
+        for (var j = -90 ; j < 90 ; j+= 0.5){
+            const e = {x: Math.floor(x), y: Math.floor(y),direction: direction + j , index: idx, kind: 'emmiter'};
+            vectors.push(e);
+            vectorMap.set(`${x}_${y}`, e);
+        }
+        vectors.push(v);
+        vectorMap.set(`${x}_${y}`, v);
+    }
+  }
+  return {vectors: vectors, vectorMap: vectorMap, surfaces: surfaces, lights: lights, size:{w: canvas.width, h: canvas.height}, toRender: null}
+}
 
 interact('.resizeable')
   .draggable({
@@ -198,4 +276,4 @@ interact('.resizeable')
       ctx.lineWidth = 6;
       ctx.putImageData(temp,0,0);
     }
-  })
+})

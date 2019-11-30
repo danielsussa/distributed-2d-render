@@ -4,17 +4,51 @@ import './style.scss';
 import ColorPicker from './color-picker';
 // import DrawCanvas from './draw';
 var draw = require('./draw');
+var toolbar = require('./toolbar');
 import RenderWorker from './worker/render.worker.js';
 import PreviewWorker from './worker/preview.worker.js';
 
-
-var colorPicker;
-
-
+var previewWorker = null;
 
 $( document ).ready(function() {
-  colorPicker = new ColorPicker($);
+  new ColorPicker($);
+  toolbar.start($);
   draw.newCanvas($)
   draw.adjustFrame();
+
 });
 
+$("body").on("draw-render-info", function(e, sceneInfo){
+  preparePreviewCanvas(sceneInfo.size);
+  const renderWorker = new RenderWorker();
+  renderWorker.postMessage({data:sceneInfo, action: 'preview-render'});
+  
+
+
+  renderWorker.addEventListener('message', function(e) {
+    if (e.data.action === 'ready'){
+      $(".preview-stage").fadeIn();
+    }
+    
+    if (e.data.action === 'send_data'){
+      previewWorker.postMessage({action: 'render'});
+    }
+    if (e.data.action === 'drawSphereLight' || e.data.action === 'debugDrawPixel' || e.data.action === `debugLineRender` || e.data.action === 'drawRaytrace'){
+        // console.log(e.data.action)
+        previewWorker.postMessage({action: e.data.action, data: e.data.data});
+    }
+    // if (e.data.action == 'counter'){
+    //     $(".ray_counter").html(`raycast: ${e.data.data.counter} emmiters: ${e.data.data.total} `)
+    //     // rayCounter = e.data.total;
+    // }
+
+  }, false);
+})
+
+function preparePreviewCanvas(size){
+  var canvasOffscreen = document.getElementById('light-canvas').transferControlToOffscreen();
+  canvasOffscreen.width = size.w;
+  canvasOffscreen.height = size.h;
+  previewWorker = new PreviewWorker();
+  previewWorker.postMessage({canvas: canvasOffscreen}, [canvasOffscreen]);
+}

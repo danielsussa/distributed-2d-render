@@ -57,8 +57,6 @@ function drawRaytrace(raytrace){
 onmessage = function(e) {
     if (e.data.canvas !== undefined){
         canvas = e.data.canvas;
-        canvas.width = 1920;
-        canvas.height = 1080;
         ctx = canvas.getContext("2d");
         ctx.translate(0, canvas.height);
         ctx.scale(1, -1);
@@ -68,7 +66,6 @@ onmessage = function(e) {
         debugLineRender(e.data.data);
     }
     if (e.data.action === 'debugDrawPixel'){
-        this.console.log('ola')
         debugDrawPixel(e.data.data);
     }
     if (e.data.action === 'drawSphereLight'){
