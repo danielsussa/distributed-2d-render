@@ -121,7 +121,8 @@ function render(){
                         }
                         
                         if (newDistance < minDistance){
-                            newColor = sceneInfo.surfaces[collider.index].color;
+                            const objColor = sceneInfo.surfaces[collider.index].color;
+                            newColor = objColor;
                             vEnd = new Vector2D(collider.x, collider.y);
                             line = new Line(vStart, vEnd);
                             minDistance = newDistance;

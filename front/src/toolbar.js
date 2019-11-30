@@ -4,6 +4,7 @@ export function start(jquery){
     $ = jquery;
 
     $(".create-light").click(function () {
+        $(".sphere-light-wrapper").removeClass("selectable");
         const selectableSphere = $("<div class='sphere-light-wrapper selectable'><div class='sphere-light'></div></div>");
         $( ".editor-stage" ).append(selectableSphere);
         $(selectableSphere).dblclick(function() {

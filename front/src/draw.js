@@ -260,6 +260,7 @@ interact('.resizeable')
       $('.frame-wrapper').css('width', left + 15);
       $('.frame-wrapper').css('height', top + 15);
       $('.frame-wrapper').css('width', left + 15);
+      $('.title').css('top', top);
 
 
     },

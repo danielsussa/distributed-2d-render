@@ -8,6 +8,8 @@ var toolbar = require('./toolbar');
 import RenderWorker from './worker/render.worker.js';
 import PreviewWorker from './worker/preview.worker.js';
 
+
+
 var previewWorker = null;
 
 $( document ).ready(function() {
@@ -20,10 +22,9 @@ $( document ).ready(function() {
 
 $("body").on("draw-render-info", function(e, sceneInfo){
   preparePreviewCanvas(sceneInfo.size);
-  const renderWorker = new RenderWorker();
-  renderWorker.postMessage({data:sceneInfo, action: 'preview-render'});
-  
 
+  const renderWorker = new Worker('worker/render.worker.js');
+  renderWorker.postMessage({data:sceneInfo, action: 'preview-render'});
 
   renderWorker.addEventListener('message', function(e) {
     if (e.data.action === 'ready'){
@@ -37,12 +38,14 @@ $("body").on("draw-render-info", function(e, sceneInfo){
         // console.log(e.data.action)
         previewWorker.postMessage({action: e.data.action, data: e.data.data});
     }
-    // if (e.data.action == 'counter'){
-    //     $(".ray_counter").html(`raycast: ${e.data.data.counter} emmiters: ${e.data.data.total} `)
-    //     // rayCounter = e.data.total;
-    // }
+    if (e.data.action == 'counter'){
+        // $(".ray_counter").html(`raycast: ${e.data.data.counter} emmiters: ${e.data.data.total} `)
+        console.log(e.data.data.total)
+        // rayCounter = e.data.total;
+    }
 
   }, false);
+
 })
 
 function preparePreviewCanvas(size){
