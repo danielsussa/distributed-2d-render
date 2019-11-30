@@ -1,7 +1,7 @@
 
 
-
-export default function NewColorPicker(canvas){
+export default function NewColorPicker($){
+    const canvas = document.getElementById('color-picker-canvas')
     canvas.width = 180;
     canvas.height = 180;
     const ctx = canvas.getContext('2d');
@@ -14,6 +14,8 @@ export default function NewColorPicker(canvas){
      ctx.drawImage(image, 0, 0, image.width, image.height);
    }
 
+
+
    $( ".color-picker" ).click(function(e) {
         var canvasOffset = $(this).offset();
         var canvasX = Math.floor(e.pageX - canvasOffset.left);
@@ -21,7 +23,8 @@ export default function NewColorPicker(canvas){
         var imageData = ctx.getImageData(canvasX, canvasY, 1, 1);
         var pixel = imageData.data;    
         var pixelColor = "rgba("+pixel[0]+", "+pixel[1]+", "+pixel[2]+", "+pixel[3]+")";
-        $('.kind-select').css('color', pixelColor);
+        $('.color-selected').css('background-color', pixelColor);
+        $( ".color-picker").trigger( "color", pixelColor );
     })
 
 }

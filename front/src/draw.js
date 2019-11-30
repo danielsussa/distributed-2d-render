@@ -9,6 +9,7 @@ var mousePositions = [];
 
 var canvas = null;
 var ctx = null;
+var $ = null;
 
 
 function adjustFrame(){
@@ -23,13 +24,15 @@ function adjustFrame(){
   $(".frame-wrapper").show();
 }
 
+
 module.exports = {
   adjustFrame: adjustFrame,
   newCanvas: newCanvas
 };
 
-function newCanvas(c){
-  canvas = c;
+function newCanvas(jquery){
+  $ = jquery;
+  canvas = document.getElementById('draw-canvas');
   canvas.width = window.innerWidth - 40;
   canvas.height = window.innerHeight - 80;
   ctx = canvas.getContext('2d');
@@ -52,6 +55,16 @@ function newCanvas(c){
     calculateNormal();
     canvas.removeEventListener('mousemove', mouseMove, false);
   }, false);
+  
+  $(".line-size").click(function () {
+    $('.line-size').removeClass('line-size-selected');
+    $(this).addClass('line-size-selected');
+    ctx.lineWidth = $(this).attr('id').replace('tickness_', '')
+  });
+
+  $( ".color-picker").on("color", function(e, color){
+    ctx.strokeStyle = color;
+  })
 }
 
 
@@ -101,7 +114,7 @@ function directionOfLine(v1, v2) {
 function getMousePos(canvas, evt) {
   return {
     x: evt.clientX + document.documentElement.scrollLeft - 20,
-    y: evt.clientY + document.documentElement.scrollTop - 40
+    y: evt.clientY + document.documentElement.scrollTop - 20
   };
 }
 
@@ -121,17 +134,7 @@ function mouseMove(evt) {
 var size = [1, 3, 5, 10, 15, 20];
 var sizeNames = ['default', 'three', 'five', 'ten'];
 
-$(".color-slot").click(function () {
-  $('.color-slot').removeClass('color-slot-selected');
-  $(this).addClass('color-slot-selected');
-  ctx.strokeStyle = $(this).css('backgroundColor');
-});
 
-$(".line-size").click(function () {
-  $('.line-size').removeClass('line-size-selected');
-  $(this).addClass('line-size-selected');
-  ctx.lineWidth = $(this).attr('id').replace('tickness_', '')
-});
 
 function process() {
   var pixelMap = new Map();

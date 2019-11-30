@@ -1,4 +1,5 @@
 @import url(https://fonts.googleapis.com/css?family=Roboto:100,300,600);
+@import url('https://fonts.googleapis.com/css?family=Russo+One&display=swap');
 
 body {
   margin: 0; 
@@ -10,7 +11,7 @@ body {
   width: 500px;
   height: 400px;
   margin: 20px;
-  border: 1px dashed #fff;
+  border: 1px dashed rgb(83, 82, 90);
   .left-up-resize {
     position: absolute;
     width: 20px;
@@ -49,17 +50,12 @@ body {
 
 }
 
-.draw-canvas{
-  position: relative;
-  background-color: blue;
-  width: 180px;
-  height: 180px;
-}
 
 .title{
-  left : 50px;
+  left : 30px;
+  bottom: 50px;
   width: 250px;
-  font-size: 22px;
+  font-size: 16px;
   position: absolute;
   color: rgb(134, 136, 143);
 }
@@ -74,30 +70,40 @@ body {
 .color-picker{
   position: absolute;
   z-index: 1000;
-  top: 60px;
+  top: 40px;
   left: 40px;
   width: 170px;
   cursor: pointer;
   height: 170px;
 }
-
-.kind-select{
-  cursor: pointer;
+.color-selected{
+  top: 55px;
+  left: 190px;
   position: absolute;
-  z-index: 1000;
-  color: #fff;
-  font-size: 28px;
-  padding: 7px;
-  width: 30px;
+  width: 20px;
+  border-radius: 30px;
+  height: 20px;
+  background-color: wheat;
+  border: 1px solid wheat;
+}
+
+.tool-bar-wrapper{
+  top: 25px;
+  left: 300px;
+  position: absolute;
+  font-size: 14px;
+  display: flex;
   height: 30px;
-  border-radius: 100px;
-  border: 8px solid #2c3038;
-  &.brush{
-    top: 60px;
-    left: 200px;
-  }
-  &.light{
-    top: 140px;
-    left: 200px;
+  .tool-bar-item{
+    font-family: 'Russo One', sans-serif;
+    color: #fff;
+    padding-top: 5px;
+
+    padding-left: 25px;
+    padding-right: 25px;
+    border-left: 1px solid wheat;
+    border-right: 1px solid wheat;
+    text-align: center;
+    height: 25px;
   }
 }

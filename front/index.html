@@ -5,19 +5,23 @@
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
   </head>
   <body>
-    <script src="https://code.jquery.com/jquery-3.4.1.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
+    <!-- <script src="https://code.jquery.com/jquery-3.4.1.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script> -->
     <script src="https://cdn.jsdelivr.net/npm/interactjs@1.7.2/dist/interact.min.js"></script>
     <script src="main.js"></script>
+
 
     <h1 class="title">Light Paint - Project</h1>
 
     <!-- <img class="colormap" src="./img_colormap.gif" usemap="#colormap_bottom" alt="colormap"> -->
-    <canvas class="color-picker" id="color-picker-canvas"></canvas>></canvas>
-    <div class="kind-select brush">
-        <i class="fa fa-paint-brush" aria-hidden="true"></i>
-    </div>
-    <div class="kind-select light">
-        <i class="fa fa-sun-o" aria-hidden="true"></i>
+    <canvas class="color-picker" id="color-picker-canvas">
+      
+    </canvas>
+    <div class="color-selected"></div>
+
+    <div class="tool-bar-wrapper">
+        <div class="tool-bar-item">LIGHT</div>
+        <div class="tool-bar-item">COLLIDER</div>
+        <div class="tool-bar-item">SCENE</div>
     </div>
     
 
