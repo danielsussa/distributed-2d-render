@@ -1,0 +1,34 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Light Paint -  Project</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+  </head>
+  <body>
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/interactjs@1.7.2/dist/interact.min.js"></script>
+    <script src="main.js"></script>
+
+    <h1 class="title">Light Paint - Project</h1>
+
+    <!-- <img class="colormap" src="./img_colormap.gif" usemap="#colormap_bottom" alt="colormap"> -->
+    <canvas class="color-picker" id="color-picker-canvas"></canvas>></canvas>
+    <div class="kind-select brush">
+        <i class="fa fa-paint-brush" aria-hidden="true"></i>
+    </div>
+    <div class="kind-select light">
+        <i class="fa fa-sun-o" aria-hidden="true"></i>
+    </div>
+    
+
+    <div class="frame-wrapper" hidden>
+        <div class="left-up-resize"></div>
+        <div class="right-up-resize"></div>
+        <div class="left-down-resize"></div>
+        <div class="right-down-resize resizeable"></div>
+        <span class="frame-wrapper-inner">
+        </span>
+        <canvas id="draw-canvas"></canvas>
+    </div>
+  </body>
+</html>

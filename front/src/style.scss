@@ -1,0 +1,103 @@
+@import url(https://fonts.googleapis.com/css?family=Roboto:100,300,600);
+
+body {
+  margin: 0; 
+  background-color: rgb(5, 5, 15);
+  font-family: 'Orbitron', sans-serif;
+}
+.frame-wrapper {
+  position: relative;
+  width: 500px;
+  height: 400px;
+  margin: 20px;
+  border: 1px dashed #fff;
+  .left-up-resize {
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    top: -5px;
+    left: -5px;
+    border-top: 1px solid #fff;
+    border-left: 1px solid #fff;
+  }
+  .right-up-resize {
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    top: -5px;
+    left: 900px;
+    border-top: 1px solid #fff;
+    border-right: 1px solid #fff;
+  }
+  .left-down-resize {
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    left: -5px;
+    border-bottom: 1px solid #fff;
+    border-left: 1px solid #fff;
+  }
+  .right-down-resize {
+    cursor: pointer;
+    touch-action: none;
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    border-bottom: 1px solid #fff;
+    border-right: 1px solid #fff;
+  }
+
+}
+
+.draw-canvas{
+  position: relative;
+  background-color: blue;
+  width: 180px;
+  height: 180px;
+}
+
+.title{
+  left : 50px;
+  width: 250px;
+  font-size: 22px;
+  position: absolute;
+  color: rgb(134, 136, 143);
+}
+
+.colormap{
+  position: absolute;
+  top: 40px;
+  left: 40px;
+  width: 150px;
+}
+
+.color-picker{
+  position: absolute;
+  z-index: 1000;
+  top: 60px;
+  left: 40px;
+  width: 170px;
+  cursor: pointer;
+  height: 170px;
+}
+
+.kind-select{
+  cursor: pointer;
+  position: absolute;
+  z-index: 1000;
+  color: #fff;
+  font-size: 28px;
+  padding: 7px;
+  width: 30px;
+  height: 30px;
+  border-radius: 100px;
+  border: 8px solid #2c3038;
+  &.brush{
+    top: 60px;
+    left: 200px;
+  }
+  &.light{
+    top: 140px;
+    left: 200px;
+  }
+}
