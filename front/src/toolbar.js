@@ -16,8 +16,6 @@ export function start(jquery){
         });
     });
 
-
-
     $(".preview-render").click(function () {
         $(".editor-stage").fadeOut(showPreview);
         function showPreview(){
@@ -30,9 +28,6 @@ export function start(jquery){
     })
 }
 
-function sendToRender(){
-
-}
 
 
 

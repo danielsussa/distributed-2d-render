@@ -80,7 +80,6 @@ function distanceFromVector(l,v){
 
 var readyTraces = [];
 
-
 function render(){
     // render lights
     sceneInfo.lights.forEach(x => {
@@ -89,8 +88,9 @@ function render(){
     const collidersVector = sceneInfo.vectors.filter(x => x.kind === 'surface' || x.kind === 'light');
     if (sceneInfo.toRender === null){
         // find all pixels that represent light
-        const emmiterVector = sceneInfo.vectors.filter(x => x.kind === 'emmiter').shuffle();
+        const emmiterVector = sceneInfo.vectors.filter(x => x.kind === 'emmiter' && x.status === 'waiting').shuffle().slice(0, 1000);
         emmiterVector.forEach(emmiter => {
+            emmiter.status = 'finish';
             function rayTrace(vStart, direction, power, color){   
                 // end of line
                 var x = vStart.x + (3000 * Math.cos(direction * Math.PI / 180));
@@ -122,7 +122,7 @@ function render(){
                         
                         if (newDistance < minDistance){
                             const objColor = sceneInfo.surfaces[collider.index].color;
-                            newColor = objColor;
+                            newColor = new Color(color.r * objColor.r / 255, color.g * objColor.g / 255, color.b * objColor.b /255, objColor.a);
                             vEnd = new Vector2D(collider.x, collider.y);
                             line = new Line(vStart, vEnd);
                             minDistance = newDistance;
@@ -202,14 +202,10 @@ function render(){
                 })
             }
             rayTrace(new Vector2D(emmiter.x, emmiter.y), emmiter.direction, 1.0, sceneInfo.lights[emmiter.index].color);
-
-            const rtLength = readyTraces.length;
-            
-            if (rtLength % 1000 === 0){
-                self.postMessage({action: 'counter', data: {counter: rtLength, total: emmiterVector.length}});
-                self.postMessage({action: 'drawRaytrace', data: readyTraces.slice(rtLength-1000, rtLength-1)});
-            }
         })
+        self.postMessage({action: 'counter', data: {counter: readyTraces.length, total: emmiterVector.length}});
+        self.postMessage({action: 'drawRaytrace', data: readyTraces});
+        readyTraces = [];
     }
 
     
@@ -237,5 +233,11 @@ onmessage = function(e) {
         sceneInfo = e.data.data;
         self.postMessage({action: 'ready'});
         render();
+    }
+    if (e.data.action === 'continue'){
+        render();
+    }
+    if (e.data.action === 'interrupt'){
+        toInterrupt = true;
     }
 }

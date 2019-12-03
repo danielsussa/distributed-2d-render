@@ -232,7 +232,7 @@ function extractDataFromScene(drawMap, lights){
         const y = light.center.y + (light.radius * Math.sin(radians));
         const v = {x: Math.floor(x), y: Math.floor(y),direction: direction , index: idx, kind: 'light'};
         for (var j = -90 ; j < 90 ; j+= 0.5){
-            const e = {x: Math.floor(x), y: Math.floor(y),direction: direction + j , index: idx, kind: 'emmiter'};
+            const e = {x: Math.floor(x), y: Math.floor(y),direction: direction + j , index: idx, kind: 'emmiter', status: 'waiting'};
             vectors.push(e);
             vectorMap.set(`${x}_${y}`, e);
         }
@@ -251,9 +251,15 @@ interact('.resizeable')
 
     // call this function on every dragmove event
     onmove: function(event){
-      var target = event.target
-      const top = parseInt($(target).css("top").replace('px','')) + event.dy;
-      const left = parseInt($(target).css("left").replace('px','')) + event.dx;
+      var target = event.target;
+      var top = parseInt($(target).css("top").replace('px','')) + event.dy;
+      var left = parseInt($(target).css("left").replace('px','')) + event.dx;
+      if (top < 400){
+        top = top - event.dy;
+      }
+      if (left < 800){
+        left = left - event.dx;
+      }
       $('.right-up-resize , .right-down-resize').css('left', left);
       $('.left-down-resize , .right-down-resize').css('top', top);
 

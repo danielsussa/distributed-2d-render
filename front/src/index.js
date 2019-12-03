@@ -5,8 +5,7 @@ import ColorPicker from './color-picker';
 // import DrawCanvas from './draw';
 var draw = require('./draw');
 var toolbar = require('./toolbar');
-import RenderWorker from './worker/render.worker.js';
-import PreviewWorker from './worker/preview.worker.js';
+import PreviewWorker from './worker/view-render.worker.js';
 
 
 
@@ -17,8 +16,9 @@ $( document ).ready(function() {
   toolbar.start($);
   draw.newCanvas($)
   draw.adjustFrame();
-
 });
+
+var renderStatus = 'stopper'
 
 $("body").on("draw-render-info", function(e, sceneInfo){
   preparePreviewCanvas(sceneInfo.size);
@@ -28,7 +28,11 @@ $("body").on("draw-render-info", function(e, sceneInfo){
 
   renderWorker.addEventListener('message', function(e) {
     if (e.data.action === 'ready'){
+      renderStatus = 'started';
       $(".preview-stage").fadeIn();
+      $(".back-to-editor").click(function(){
+        renderStatus = 'stopper'
+      });
     }
     
     if (e.data.action === 'send_data'){
@@ -39,14 +43,16 @@ $("body").on("draw-render-info", function(e, sceneInfo){
         previewWorker.postMessage({action: e.data.action, data: e.data.data});
     }
     if (e.data.action == 'counter'){
-        // $(".ray_counter").html(`raycast: ${e.data.data.counter} emmiters: ${e.data.data.total} `)
-        console.log(e.data.data.total)
-        // rayCounter = e.data.total;
+      console.log('opa')
+      if (renderStatus === 'started'){
+        renderWorker.postMessage({action: 'continue'});
+      }
     }
 
   }, false);
-
 })
+
+
 
 function preparePreviewCanvas(size){
   var canvasOffscreen = document.getElementById('light-canvas').transferControlToOffscreen();

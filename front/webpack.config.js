@@ -39,6 +39,7 @@ module.exports = {
   plugins: [
     new CopyPlugin([
       { from: 'index.html', to: 'index.html', toType: 'file'},
+      { from: 'src/worker/render.worker.js', to: 'worker/render.worker.js', toType: 'file'},
     ]),
   ],
   devServer: {
