@@ -43,7 +43,6 @@ $("body").on("draw-render-info", function(e, sceneInfo){
         previewWorker.postMessage({action: e.data.action, data: e.data.data});
     }
     if (e.data.action == 'counter'){
-      console.log('opa')
       if (renderStatus === 'started'){
         renderWorker.postMessage({action: 'continue'});
       }

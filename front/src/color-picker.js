@@ -7,12 +7,11 @@ export default function NewColorPicker($){
     const ctx = canvas.getContext('2d');
     ctx.scale(0.75, 0.75);
     var image = new Image();
-    image.src = "./img_colormap.gif";
+    image.src = "./static/images/img_colormap.gif";
     // var myCanvasElem = $("#canvas").get(0);
-    image.onload = function () 
-   {
-     ctx.drawImage(image, 0, 0, image.width, image.height);
-   }
+    image.onload = function () {
+      ctx.drawImage(image, 0, 0, image.width, image.height);
+    }
 
 
 
@@ -25,6 +24,6 @@ export default function NewColorPicker($){
         var pixelColor = "rgba("+pixel[0]+", "+pixel[1]+", "+pixel[2]+", "+pixel[3]+")";
         $('.color-selected').css('background-color', pixelColor);
         $( ".color-picker").trigger( "color", pixelColor );
-    })
+  })
 
 }

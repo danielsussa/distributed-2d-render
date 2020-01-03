@@ -60,33 +60,6 @@ body {
   color: rgb(134, 136, 143);
 }
 
-.colormap{
-  position: absolute;
-  top: 40px;
-  left: 40px;
-  width: 150px;
-}
-
-.color-picker{
-  position: absolute;
-  z-index: 1000;
-  top: 40px;
-  left: 40px;
-  width: 170px;
-  cursor: pointer;
-  height: 170px;
-}
-.color-selected{
-  top: 55px;
-  left: 190px;
-  position: absolute;
-  width: 20px;
-  border-radius: 30px;
-  height: 20px;
-  background-color: wheat;
-  border: 1px solid wheat;
-}
-
 .tool-bar-wrapper{
   top: 25px;
   left: 250px;
@@ -129,5 +102,47 @@ body {
     height: 40px;
     background-color: #fff;
     border-radius: 100%;
+  }
+}
+
+.colormap{
+  position: absolute;
+  top: 40px;
+  left: 40px;
+  width: 150px;
+}
+
+.color-picker{
+  position: absolute;
+  z-index: 1000;
+  top: 40px;
+  left: 40px;
+  width: 170px;
+  cursor: pointer;
+  height: 170px;
+}
+.color-selected{
+  top: 55px;
+  left: 190px;
+  position: absolute;
+  width: 20px;
+  border-radius: 30px;
+  height: 20px;
+  background-color: wheat;
+  border: 1px solid wheat;
+}
+
+.menu-wrapper{
+  text-align: center;
+  top: 800px;
+  left: 300px;
+  display: inline-flex;
+  position: absolute;
+  height: 40px;
+  .menu-item{
+    cursor: pointer;
+    font-family: 'Russo One', sans-serif;
+    color: wheat;
+    margin-right: 20px;
   }
 }

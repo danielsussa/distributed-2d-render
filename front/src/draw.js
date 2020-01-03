@@ -22,6 +22,10 @@ function adjustFrame(){
   $(".right-down-resize").css('top', h - 15);
   $(".right-down-resize").css('left', w - 15);
   $(".frame-wrapper").show();
+
+  $(".title").css('top', h - 15);
+  $(".menu-wrapper").css('top', h + 25);
+  $(".menu-wrapper").css('left', w / 2 - 50);
 }
 
 
@@ -267,6 +271,7 @@ interact('.resizeable')
       $('.frame-wrapper').css('height', top + 15);
       $('.frame-wrapper').css('width', left + 15);
       $('.title').css('top', top);
+      $('.menu-wrapper').css('top', top + 40);
 
 
     },
